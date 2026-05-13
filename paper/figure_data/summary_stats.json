@@ -1,0 +1,174 @@
+{
+  "EMNIST-Letters": {
+    "Local": {
+      "display": "Local Only",
+      "avg_acc_pct": 39.7,
+      "final_acc_pct": 16.19,
+      "forgetting_pct": 97.77
+    },
+    "FedAvg": {
+      "display": "FedAvg",
+      "avg_acc_pct": 40.96,
+      "final_acc_pct": 31.69,
+      "forgetting_pct": 67.48
+    },
+    "FedLwF": {
+      "display": "FedLwF",
+      "avg_acc_pct": 41.03,
+      "final_acc_pct": 30.87,
+      "forgetting_pct": 68.17
+    },
+    "FedProx": {
+      "display": "FedProx",
+      "avg_acc_pct": 43.82,
+      "final_acc_pct": 32.58,
+      "forgetting_pct": 67.03
+    },
+    "SCAFFOLD": {
+      "display": "SCAFFOLD",
+      "avg_acc_pct": 37.3,
+      "final_acc_pct": 20.52,
+      "forgetting_pct": 73.32
+    },
+    "PerAvg": {
+      "display": "Per-FedAvg",
+      "avg_acc_pct": 48.02,
+      "final_acc_pct": 24.74,
+      "forgetting_pct": 79.38
+    },
+    "pFedMe": {
+      "display": "pFedMe",
+      "avg_acc_pct": 9.2,
+      "final_acc_pct": 7.29,
+      "forgetting_pct": 5.0
+    },
+    "DCFCL": {
+      "display": "DCFCL",
+      "avg_acc_pct": 41.38,
+      "final_acc_pct": 20.82,
+      "forgetting_pct": 79.99
+    },
+    "CollEdge": {
+      "display": "CollEdge",
+      "avg_acc_pct": 90.45,
+      "final_acc_pct": 86.39,
+      "forgetting_pct": 10.05
+    },
+    "DER only": {
+      "display": "+DER++",
+      "avg_acc_pct": 82.14,
+      "final_acc_pct": 84.39,
+      "forgetting_pct": 4.38
+    },
+    "DER+Dir": {
+      "display": "+DER++ +Directed",
+      "avg_acc_pct": 91.45,
+      "final_acc_pct": 86.86,
+      "forgetting_pct": 7.47
+    },
+    "DER+Mask": {
+      "display": "+DER++ +Coalition",
+      "avg_acc_pct": 85.0,
+      "final_acc_pct": 84.74,
+      "forgetting_pct": 8.1
+    },
+    "Dir only": {
+      "display": "Directed only",
+      "avg_acc_pct": 46.2,
+      "final_acc_pct": 23.21,
+      "forgetting_pct": 88.29
+    },
+    "Mask only": {
+      "display": "Coalition only",
+      "avg_acc_pct": 40.94,
+      "final_acc_pct": 21.93,
+      "forgetting_pct": 75.23
+    }
+  },
+  "CIFAR100": {
+    "Local": {
+      "display": "Local Only",
+      "avg_acc_pct": 16.84,
+      "final_acc_pct": 6.98,
+      "forgetting_pct": 67.12
+    },
+    "FedAvg": {
+      "display": "FedAvg",
+      "avg_acc_pct": 9.33,
+      "final_acc_pct": 13.3,
+      "forgetting_pct": 13.21
+    },
+    "FedLwF": {
+      "display": "FedLwF",
+      "avg_acc_pct": 9.4,
+      "final_acc_pct": 12.85,
+      "forgetting_pct": 14.51
+    },
+    "FedProx": {
+      "display": "FedProx",
+      "avg_acc_pct": 9.74,
+      "final_acc_pct": 13.2,
+      "forgetting_pct": 14.81
+    },
+    "SCAFFOLD": {
+      "display": "SCAFFOLD",
+      "avg_acc_pct": 7.39,
+      "final_acc_pct": 9.64,
+      "forgetting_pct": 8.33
+    },
+    "PerAvg": {
+      "display": "Per-FedAvg",
+      "avg_acc_pct": 20.34,
+      "final_acc_pct": 25.96,
+      "forgetting_pct": 11.06
+    },
+    "pFedMe": {
+      "display": "pFedMe",
+      "avg_acc_pct": 1.81,
+      "final_acc_pct": 1.0,
+      "forgetting_pct": 4.11
+    },
+    "DCFCL": {
+      "display": "DCFCL",
+      "avg_acc_pct": 12.08,
+      "final_acc_pct": 9.99,
+      "forgetting_pct": 25.45
+    },
+    "CollEdge": {
+      "display": "CollEdge",
+      "avg_acc_pct": 24.28,
+      "final_acc_pct": 19.39,
+      "forgetting_pct": 43.58
+    },
+    "DER only": {
+      "display": "+DER++",
+      "avg_acc_pct": 24.09,
+      "final_acc_pct": 38.53,
+      "forgetting_pct": 4.38
+    },
+    "DER+Dir": {
+      "display": "+DER++ +Directed",
+      "avg_acc_pct": 24.92,
+      "final_acc_pct": 23.63,
+      "forgetting_pct": 44.29
+    },
+    "DER+Mask": {
+      "display": "+DER++ +Coalition",
+      "avg_acc_pct": 21.8,
+      "final_acc_pct": 26.64,
+      "forgetting_pct": 14.74
+    },
+    "Dir only": {
+      "display": "Directed only",
+      "avg_acc_pct": 15.47,
+      "final_acc_pct": 8.04,
+      "forgetting_pct": 62.56
+    },
+    "Mask only": {
+      "display": "Coalition only",
+      "avg_acc_pct": 10.67,
+      "final_acc_pct": 10.12,
+      "forgetting_pct": 25.71
+    }
+  }
+}

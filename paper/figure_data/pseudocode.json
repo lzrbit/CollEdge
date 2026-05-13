@@ -1,0 +1,64 @@
+{
+  "algorithm_name": "CollEdge: Decentralized Federated Continual Learning with Directed Collaboration",
+  "input": [
+    "N clients, T tasks, R communication rounds per task",
+    "Learning rates \u03b7, \u03bb_kd, \u03bb_proto, \u03b1 (DER), \u03b2 (ER)",
+    "Buffer size B, directed temperature \u03c4, self-weight w_self",
+    "Coalition formation threshold \u03b4"
+  ],
+  "output": [
+    "Personalized models {\u03b8_i} for each client i"
+  ],
+  "steps": [
+    {
+      "phase": "Initialization",
+      "lines": [
+        "Initialize model \u03b8_i for each client i",
+        "Initialize replay buffer Buf_i \u2190 \u2205 for each client i",
+        "Initialize gradient store G_i \u2190 \u2205"
+      ]
+    },
+    {
+      "phase": "Outer Loop: Tasks",
+      "lines": [
+        "for task t = 1, 2, ..., T do:",
+        "  Each client i receives new task data D_i^t",
+        "  for round r = 1, 2, ..., R do:",
+        "    \u2500\u2500 CLIENT LOCAL TRAINING \u2500\u2500",
+        "    for each client i in parallel do:",
+        "      Sample mini-batch (x, y) ~ D_i^t",
+        "      Compute L_CE = CrossEntropy(f_\u03b8i(x), y)",
+        "      Compute L_KD = KLDiv(f_\u03b8i(x), f_\u03b8_old(x))   [knowledge distillation]",
+        "      Compute L_Proto = ProtoAug loss              [prototype augmentation]",
+        "      if Buf_i \u2260 \u2205 then:",
+        "        Sample (x_b, y_b, z_b) ~ Buf_i",
+        "        L_DER = MSE(f_\u03b8i(x_b), z_b)               [dark experience replay]",
+        "        L_ER  = CrossEntropy(f_\u03b8i(x_b), y_b)      [experience replay]",
+        "      else: L_DER = L_ER = 0",
+        "      L_total = L_CE + \u03bb_kd\u00b7L_KD + \u03bb_proto\u00b7L_Proto + \u03b1\u00b7L_DER + \u03b2\u00b7L_ER",
+        "      Update \u03b8_i \u2190 \u03b8_i - \u03b7\u00b7\u2207L_total",
+        "      Store current logits in Buf_i via reservoir sampling",
+        "      Record gradient g_i \u2190 \u2207L_CE",
+        "    end parallel",
+        "    \u2500\u2500 SERVER COALITION FORMATION \u2500\u2500",
+        "    Clients send {\u03b8_i, g_i, class_set_i} to server",
+        "    Compute pairwise cosine similarity S[i][j] = cos(g_i, g_j)",
+        "    Form coalitions C via cooperative game with benefit \u03c6_i(C):",
+        "      \u03c6_i(C) = <g_C^agg, g_i> / ||g_C^agg||         [directed benefit]",
+        "    \u2500\u2500 DIRECTED AGGREGATION \u2500\u2500",
+        "    Compute directed collaboration matrix D[i][j]:",
+        "      D[i][j] = 0.5\u00b7cos(\u2207_i, \u2207_j)\u00b7sqrt(||\u2207_j||/||\u2207_i||)",
+        "              + 0.5\u00b7(0.4\u00b7relevance + 0.3\u00b7diversity + 0.3\u00b7experience)",
+        "    for each client i do:",
+        "      Filter: J = {j \u2208 C_i : D[i][j] > \u03b4}",
+        "      w_ij = softmax(D[i][j]/\u03c4) \u00b7 s_j  for j \u2208 J",
+        "      \u03b8_i^agg = w_self\u00b7\u03b8_i + (1-w_self)\u00b7\u03a3_{j\u2208J} w_ij\u00b7\u03b8_j",
+        "    Distribute personalized models {\u03b8_i^agg} to clients",
+        "    \u03b8_i \u2190 \u03b8_i^agg  for each client i",
+        "  end rounds",
+        "  Update old model \u03b8_old \u2190 \u03b8_i  (for KD in next task)",
+        "end tasks"
+      ]
+    }
+  ]
+}

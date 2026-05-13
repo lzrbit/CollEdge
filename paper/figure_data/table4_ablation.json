@@ -1,0 +1,72 @@
+[
+  {
+    "variant": "DCFCL (Baseline)",
+    "DER": "\u2717",
+    "Directed": "\u2717",
+    "Coalition": "\u2717",
+    "EMNIST-Letters_avg_acc": 41.38,
+    "EMNIST-Letters_forgetting": 79.99,
+    "CIFAR100_avg_acc": 12.08,
+    "CIFAR100_forgetting": 25.45
+  },
+  {
+    "variant": "+DER++",
+    "DER": "\u2713",
+    "Directed": "\u2717",
+    "Coalition": "\u2717",
+    "EMNIST-Letters_avg_acc": 82.14,
+    "EMNIST-Letters_forgetting": 4.38,
+    "CIFAR100_avg_acc": 24.09,
+    "CIFAR100_forgetting": 4.38
+  },
+  {
+    "variant": "+DER++ +Directed",
+    "DER": "\u2713",
+    "Directed": "\u2713",
+    "Coalition": "\u2717",
+    "EMNIST-Letters_avg_acc": 91.45,
+    "EMNIST-Letters_forgetting": 7.47,
+    "CIFAR100_avg_acc": 24.92,
+    "CIFAR100_forgetting": 44.29
+  },
+  {
+    "variant": "+DER++ +Coalition",
+    "DER": "\u2713",
+    "Directed": "\u2717",
+    "Coalition": "\u2713",
+    "EMNIST-Letters_avg_acc": 85.0,
+    "EMNIST-Letters_forgetting": 8.1,
+    "CIFAR100_avg_acc": 21.8,
+    "CIFAR100_forgetting": 14.74
+  },
+  {
+    "variant": "CollEdge",
+    "DER": "\u2713",
+    "Directed": "\u2713",
+    "Coalition": "\u2713",
+    "EMNIST-Letters_avg_acc": 90.45,
+    "EMNIST-Letters_forgetting": 10.05,
+    "CIFAR100_avg_acc": 24.28,
+    "CIFAR100_forgetting": 43.58
+  },
+  {
+    "variant": "Directed only",
+    "DER": "\u2717",
+    "Directed": "\u2713",
+    "Coalition": "\u2717",
+    "EMNIST-Letters_avg_acc": 46.2,
+    "EMNIST-Letters_forgetting": 88.29,
+    "CIFAR100_avg_acc": 15.47,
+    "CIFAR100_forgetting": 62.56
+  },
+  {
+    "variant": "Coalition only",
+    "DER": "\u2717",
+    "Directed": "\u2717",
+    "Coalition": "\u2713",
+    "EMNIST-Letters_avg_acc": 40.94,
+    "EMNIST-Letters_forgetting": 75.23,
+    "CIFAR100_avg_acc": 10.67,
+    "CIFAR100_forgetting": 25.71
+  }
+]

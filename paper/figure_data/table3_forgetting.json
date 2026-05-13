@@ -1,0 +1,47 @@
+[
+  {
+    "algorithm": "Local Only",
+    "EMNIST-Letters_forgetting": 97.77,
+    "CIFAR100_forgetting": 67.12
+  },
+  {
+    "algorithm": "FedAvg",
+    "EMNIST-Letters_forgetting": 67.48,
+    "CIFAR100_forgetting": 13.21
+  },
+  {
+    "algorithm": "FedLwF",
+    "EMNIST-Letters_forgetting": 68.17,
+    "CIFAR100_forgetting": 14.51
+  },
+  {
+    "algorithm": "FedProx",
+    "EMNIST-Letters_forgetting": 67.03,
+    "CIFAR100_forgetting": 14.81
+  },
+  {
+    "algorithm": "SCAFFOLD",
+    "EMNIST-Letters_forgetting": 73.32,
+    "CIFAR100_forgetting": 8.33
+  },
+  {
+    "algorithm": "Per-FedAvg",
+    "EMNIST-Letters_forgetting": 79.38,
+    "CIFAR100_forgetting": 11.06
+  },
+  {
+    "algorithm": "pFedMe",
+    "EMNIST-Letters_forgetting": 5.0,
+    "CIFAR100_forgetting": 4.11
+  },
+  {
+    "algorithm": "DCFCL",
+    "EMNIST-Letters_forgetting": 79.99,
+    "CIFAR100_forgetting": 25.45
+  },
+  {
+    "algorithm": "CollEdge",
+    "EMNIST-Letters_forgetting": 10.05,
+    "CIFAR100_forgetting": 43.58
+  }
+]

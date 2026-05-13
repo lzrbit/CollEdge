@@ -1,0 +1,162 @@
+{
+  "EMNIST-Letters": {
+    "CollEdge": {
+      "display_name": "CollEdge",
+      "n_tasks": 6,
+      "final_per_task_acc": [
+        83.08,
+        84.28,
+        86.51,
+        86.02,
+        86.08,
+        92.39
+      ],
+      "past_tasks_avg_at_final": 85.19,
+      "current_task_acc_at_final": 92.39,
+      "past_avg_over_time": [
+        null,
+        94.68,
+        94.7,
+        89.55,
+        89.49,
+        85.19
+      ]
+    },
+    "DCFCL": {
+      "display_name": "DCFCL",
+      "n_tasks": 6,
+      "final_per_task_acc": [
+        0.59,
+        6.67,
+        7.88,
+        3.38,
+        18.94,
+        87.47
+      ],
+      "past_tasks_avg_at_final": 7.49,
+      "current_task_acc_at_final": 87.47,
+      "past_avg_over_time": [
+        null,
+        34.47,
+        21.32,
+        18.69,
+        22.57,
+        7.49
+      ]
+    },
+    "FedAvg": {
+      "display_name": "FedAvg",
+      "n_tasks": 6,
+      "final_per_task_acc": [
+        2.45,
+        13.34,
+        28.16,
+        20.95,
+        31.84,
+        93.41
+      ],
+      "past_tasks_avg_at_final": 19.35,
+      "current_task_acc_at_final": 93.41,
+      "past_avg_over_time": [
+        null,
+        38.37,
+        40.19,
+        27.79,
+        28.3,
+        19.35
+      ]
+    }
+  },
+  "CIFAR100": {
+    "CollEdge": {
+      "display_name": "CollEdge",
+      "n_tasks": 10,
+      "final_per_task_acc": [
+        13.09,
+        13.19,
+        14.56,
+        15.98,
+        11.51,
+        12.82,
+        12.04,
+        14.55,
+        14.93,
+        71.26
+      ],
+      "past_tasks_avg_at_final": 13.63,
+      "current_task_acc_at_final": 71.26,
+      "past_avg_over_time": [
+        null,
+        18.06,
+        13.75,
+        13.18,
+        10.55,
+        13.02,
+        7.71,
+        11.45,
+        13.16,
+        13.63
+      ]
+    },
+    "DCFCL": {
+      "display_name": "DCFCL",
+      "n_tasks": 10,
+      "final_per_task_acc": [
+        6.5,
+        5.13,
+        5.36,
+        7.6,
+        5.66,
+        4.82,
+        9.27,
+        5.13,
+        8.19,
+        42.26
+      ],
+      "past_tasks_avg_at_final": 6.41,
+      "current_task_acc_at_final": 42.26,
+      "past_avg_over_time": [
+        null,
+        4.82,
+        4.72,
+        6.73,
+        3.44,
+        4.22,
+        5.47,
+        5.62,
+        4.01,
+        6.41
+      ]
+    },
+    "FedAvg": {
+      "display_name": "FedAvg",
+      "n_tasks": 10,
+      "final_per_task_acc": [
+        7.65,
+        12.02,
+        10.34,
+        12.97,
+        9.15,
+        7.87,
+        13.57,
+        11.09,
+        14.75,
+        33.61
+      ],
+      "past_tasks_avg_at_final": 11.05,
+      "current_task_acc_at_final": 33.61,
+      "past_avg_over_time": [
+        null,
+        7.64,
+        3.42,
+        4.28,
+        4.29,
+        6.98,
+        9.29,
+        8.75,
+        6.81,
+        11.05
+      ]
+    }
+  }
+}

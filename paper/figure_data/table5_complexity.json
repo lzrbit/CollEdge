@@ -1,0 +1,66 @@
+[
+  {
+    "algorithm": "FedAvg",
+    "client_complexity": "O(E\u00b7|B|\u00b7d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(d)",
+    "notes": "Baseline. E=local epochs, |B|=batch size, d=model size, n=num clients"
+  },
+  {
+    "algorithm": "FedProx",
+    "client_complexity": "O(E\u00b7|B|\u00b7d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(d)",
+    "notes": "Adds proximal term; same asymptotic complexity as FedAvg"
+  },
+  {
+    "algorithm": "SCAFFOLD",
+    "client_complexity": "O(E\u00b7|B|\u00b7d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(2n\u00b7d)",
+    "extra_memory": "O(d)",
+    "notes": "Doubles communication for control variates"
+  },
+  {
+    "algorithm": "Per-FedAvg",
+    "client_complexity": "O(2E\u00b7|B|\u00b7d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(d)",
+    "notes": "MAML-style meta-gradient doubling cost"
+  },
+  {
+    "algorithm": "pFedMe",
+    "client_complexity": "O(E\u00b7|B|\u00b7d + K\u00b7d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(2d)",
+    "notes": "K inner steps for personalized model"
+  },
+  {
+    "algorithm": "FedLwF",
+    "client_complexity": "O(E\u00b7|B|\u00b72d)",
+    "server_complexity": "O(n\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(2d)",
+    "notes": "Double forward pass for knowledge distillation"
+  },
+  {
+    "algorithm": "DCFCL",
+    "client_complexity": "O(E\u00b7|B|\u00b72d + C\u00b7n\u00b2)",
+    "server_complexity": "O(n\u00b2\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(2d + n\u00b2)",
+    "notes": "Coalition game O(n\u00b2), KD+Proto-Aug double pass"
+  },
+  {
+    "algorithm": "CollEdge",
+    "client_complexity": "O(E\u00b7|B|\u00b73d + B_size + C\u00b7n\u00b2)",
+    "server_complexity": "O(n\u00b2\u00b7d)",
+    "communication_cost": "O(n\u00b7d)",
+    "extra_memory": "O(3d + B_size + n\u00b2)",
+    "notes": "DER++ adds replay buffer B_size, directed collab O(n\u00b2). No extra comm."
+  }
+]

@@ -1,0 +1,78 @@
+# CollEdge 完整版方法配置（EMNIST-Letters）
+# ==============================================
+# 包含全部三个改进模块：
+#   A. DER++             - 暗经验回放，抑制持续学习遗忘
+#   B. 有向协作机制        - 非对称联盟聚合，减少负迁移
+#   C. 联盟 Mask          - 限制异质客户端强制联盟，保护个性化
+#
+# 用法：
+#   python main.py --config configs/colledge_complete_emnist.yaml
+#
+# 消融对比：
+#   仅 DER++（无有向/无 mask）：
+#     python main.py --config configs/colledge_complete_emnist.yaml \
+#                    --no_use_directed_collaboration --no_use_coalition_mask
+#   注：也可直接用 scripts/run_module_ablation.py 批量运行所有消融变体
+
+# ---------- 基础设置 ----------
+seed: 42
+device: auto
+
+# ---------- 数据集 ----------
+dataset: EMNIST-Letters
+datadir: ./datasets
+data_split_file: split_files/EMNIST_letters_split_cn8_tn6_cet2_cs2_s2571.pkl
+
+# ---------- 联邦学习 ----------
+num_users: 8
+num_tasks: 6
+num_rounds: 60
+local_epochs: 100
+batch_size: 64
+
+# ---------- 算法 ----------
+algorithm: CollEdge
+
+# ---------- 优化器 ----------
+lr: 0.0001
+weight_decay: 0.00001
+beta1: 0.9
+beta2: 0.999
+
+# ---------- DCFCL 基础参数 ----------
+lambda_kd: 0.2          # 知识蒸馏损失权重
+sw: 0.1                 # 相似度权重
+temp: 0.1
+ema_global: 0.9
+global_weight: 0.9
+lambda_proto_aug: 2.0   # 原型增强损失权重
+proto_queue_length: 100
+dcfcl_broadcast: 0      # 0=纯联盟（论文默认）
+
+# ---------- 模块 A：DER++ 回放 ----------
+use_der: true           # 启用开关（false → 退化为 DCFCL 行为）
+buffer_size: 500        # 每客户端回放缓冲区大小
+der_alpha: 0.5          # DER logit 匹配损失权重
+der_beta: 0.5           # DER++ CE 损失权重
+
+# ---------- 模块 B：有向协作 ----------
+directed_collaboration: true     # 启用非对称联盟聚合
+directed_mode: gradient          # gradient | task_aware | hybrid
+directed_temperature: 1.0        # softmax 温度
+directed_self_weight: 0.5        # 客户端保留自身模型权重
+directed_threshold: 0.0          # 得分阈值（0 = 接受所有正分）
+
+# ---------- 模块 C：联盟 Mask ----------
+use_coalition_mask: true         # 启用联盟约束
+coalition_mask_type: group       # group | random | custom
+num_client_groups: 2             # group 模式：分组数量
+coalition_mask_density: 0.2      # random 模式：禁止对概率
+
+# ---------- 模型 ----------
+model: cnn
+feature_dim: 512
+
+# ---------- 日志 ----------
+result_dir: ./results
+log_level: INFO
+save_model: false

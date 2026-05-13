@@ -1,0 +1,47 @@
+[
+  {
+    "algorithm": "Local Only",
+    "EMNIST-Letters_final_acc": 16.19,
+    "CIFAR100_final_acc": 6.98
+  },
+  {
+    "algorithm": "FedAvg",
+    "EMNIST-Letters_final_acc": 31.69,
+    "CIFAR100_final_acc": 13.3
+  },
+  {
+    "algorithm": "FedLwF",
+    "EMNIST-Letters_final_acc": 30.87,
+    "CIFAR100_final_acc": 12.85
+  },
+  {
+    "algorithm": "FedProx",
+    "EMNIST-Letters_final_acc": 32.58,
+    "CIFAR100_final_acc": 13.2
+  },
+  {
+    "algorithm": "SCAFFOLD",
+    "EMNIST-Letters_final_acc": 20.52,
+    "CIFAR100_final_acc": 9.64
+  },
+  {
+    "algorithm": "Per-FedAvg",
+    "EMNIST-Letters_final_acc": 24.74,
+    "CIFAR100_final_acc": 25.96
+  },
+  {
+    "algorithm": "pFedMe",
+    "EMNIST-Letters_final_acc": 7.29,
+    "CIFAR100_final_acc": 1.0
+  },
+  {
+    "algorithm": "DCFCL",
+    "EMNIST-Letters_final_acc": 20.82,
+    "CIFAR100_final_acc": 9.99
+  },
+  {
+    "algorithm": "CollEdge",
+    "EMNIST-Letters_final_acc": 86.39,
+    "CIFAR100_final_acc": 19.39
+  }
+]

@@ -1,0 +1,72 @@
+# CollEdge 完整版方法配置（CIFAR-100）
+# ==============================================
+# 包含全部三个改进模块：
+#   A. DER++             - 暗经验回放，抑制持续学习遗忘
+#   B. 有向协作机制        - 非对称联盟聚合，减少负迁移
+#   C. 联盟 Mask          - 限制异质客户端强制联盟，保护个性化
+#
+# 用法：
+#   python main.py --config configs/colledge_complete_cifar100.yaml
+
+# ---------- 基础设置 ----------
+seed: 42
+device: auto
+
+# ---------- 数据集 ----------
+dataset: CIFAR100
+datadir: ./datasets
+data_split_file: split_files/CIFAR100_split_cn10_tn10_cet10_cs1_s2571.pkl
+
+# ---------- 联邦学习 ----------
+num_users: 10
+num_tasks: 10
+num_rounds: 100
+local_epochs: 50
+batch_size: 64
+
+# ---------- 算法 ----------
+algorithm: CollEdge
+
+# ---------- 优化器 ----------
+lr: 0.001
+weight_decay: 0.001
+beta1: 0.9
+beta2: 0.999
+
+# ---------- DCFCL 基础参数 ----------
+lambda_kd: 0.2
+sw: 0.1
+temp: 0.1
+ema_global: 0.9
+global_weight: 0.9
+lambda_proto_aug: 0.1   # CIFAR100 调优值（EMNIST 为 2.0）
+proto_queue_length: 100
+dcfcl_broadcast: 0
+
+# ---------- 模型 ----------
+model: resnet18
+feature_dim: 512
+
+# ---------- 模块 A：DER++ 回放 ----------
+use_der: true
+buffer_size: 500
+der_alpha: 0.5
+der_beta: 0.5
+
+# ---------- 模块 B：有向协作 ----------
+directed_collaboration: true
+directed_mode: gradient
+directed_temperature: 1.0
+directed_self_weight: 0.5
+directed_threshold: 0.0
+
+# ---------- 模块 C：联盟 Mask ----------
+use_coalition_mask: true
+coalition_mask_type: group
+num_client_groups: 2     # 10 客户端 / 2 组 = 每组 5 个
+coalition_mask_density: 0.2
+
+# ---------- 日志 ----------
+result_dir: ./results
+log_level: INFO
+save_model: false
