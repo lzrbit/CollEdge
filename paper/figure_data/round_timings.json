@@ -1,0 +1,122 @@
+{
+  "EMNIST-Letters|baselines|ClusterFL": {
+    "avg_round_sec": 8.372881355932204,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|baselines|FedAvg": {
+    "avg_round_sec": 1.3620689655172413,
+    "n_rounds": 58
+  },
+  "EMNIST-Letters|baselines|FedLwF": {
+    "avg_round_sec": 1.5689655172413792,
+    "n_rounds": 58
+  },
+  "EMNIST-Letters|baselines|FedProx": {
+    "avg_round_sec": 1.7796610169491525,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|baselines|Local": {
+    "avg_round_sec": 1.3448275862068966,
+    "n_rounds": 58
+  },
+  "EMNIST-Letters|baselines|PerAvg": {
+    "avg_round_sec": 2.2033898305084745,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|baselines|SCAFFOLD": {
+    "avg_round_sec": 1.7796610169491525,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|baselines|pFedMe": {
+    "avg_round_sec": 2.8135593220338984,
+    "n_rounds": 59
+  },
+  "CIFAR100|baselines|ClusterFL": {
+    "avg_round_sec": 24.272727272727273,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|FedAvg": {
+    "avg_round_sec": 18.393939393939394,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|FedLwF": {
+    "avg_round_sec": 20.060606060606062,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|FedProx": {
+    "avg_round_sec": 19.606060606060606,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|Local": {
+    "avg_round_sec": 18.252525252525253,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|PerAvg": {
+    "avg_round_sec": 30.454545454545453,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|SCAFFOLD": {
+    "avg_round_sec": 20.383838383838384,
+    "n_rounds": 99
+  },
+  "CIFAR100|baselines|pFedMe": {
+    "avg_round_sec": 33.35353535353536,
+    "n_rounds": 99
+  },
+  "EMNIST-Letters|ablation|A_DCFCL_baseline": {
+    "avg_round_sec": 2.9152542372881354,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|B_DER_only": {
+    "avg_round_sec": 3.4745762711864407,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|C_DER_Directed": {
+    "avg_round_sec": 3.7457627118644066,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|D_DER_Mask": {
+    "avg_round_sec": 3.406779661016949,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|E_DER_Dir_Mask_Full": {
+    "avg_round_sec": 3.694915254237288,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|F_noDER_Directed": {
+    "avg_round_sec": 3.1016949152542375,
+    "n_rounds": 59
+  },
+  "EMNIST-Letters|ablation|G_noDER_Mask": {
+    "avg_round_sec": 2.76271186440678,
+    "n_rounds": 59
+  },
+  "CIFAR100|ablation|A_DCFCL_baseline": {
+    "avg_round_sec": 31.666666666666668,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|B_DER_only": {
+    "avg_round_sec": 40.22222222222222,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|C_DER_Directed": {
+    "avg_round_sec": 44.03030303030303,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|D_DER_Mask": {
+    "avg_round_sec": 39.505050505050505,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|E_DER_Dir_Mask_Full": {
+    "avg_round_sec": 43.63636363636363,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|F_noDER_Directed": {
+    "avg_round_sec": 34.56565656565657,
+    "n_rounds": 99
+  },
+  "CIFAR100|ablation|G_noDER_Mask": {
+    "avg_round_sec": 29.08080808080808,
+    "n_rounds": 99
+  }
+}
