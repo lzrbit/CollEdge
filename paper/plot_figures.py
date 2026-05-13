@@ -94,37 +94,44 @@ DS_TITLES = {
 
 
 def apply_style() -> None:
-    """Single-source rcParams preset suited to IEEE / Nature double-column figures."""
+    """Single-source rcParams preset (Arial, Nature-style)."""
     plt.rcParams.update(
         {
-            # Fonts
-            "font.family":      "serif",
-            "font.serif":       ["Times New Roman", "Nimbus Roman", "DejaVu Serif"],
-            "mathtext.fontset": "stix",
-            "font.size":        9.0,
-            "axes.titlesize":   10.0,
-            "axes.labelsize":   9.5,
-            "xtick.labelsize":  8.5,
-            "ytick.labelsize":  8.5,
-            "legend.fontsize":  8.0,
-            "legend.title_fontsize": 8.5,
-            # Lines / spines
-            "axes.linewidth":   0.8,
-            "lines.linewidth":  1.4,
-            "xtick.major.width": 0.7,
-            "ytick.major.width": 0.7,
-            "xtick.direction":  "in",
-            "ytick.direction":  "in",
-            # Grid
-            "axes.grid":        True,
+            # Fonts — Arial everywhere
+            "font.family":      "sans-serif",
+            "font.sans-serif":  ["Arial", "Helvetica", "DejaVu Sans"],
+            "mathtext.fontset": "custom",
+            "mathtext.rm":      "Arial",
+            "mathtext.it":      "Arial:italic",
+            "mathtext.bf":      "Arial:bold",
+            "font.size":        11.0,
+            "axes.titlesize":   12.0,
+            "axes.labelsize":   12.0,
+            "xtick.labelsize":  10.5,
+            "ytick.labelsize":  10.5,
+            "legend.fontsize":  10.0,
+            "legend.title_fontsize": 10.5,
+            # Lines / spines (Nature-like: thin, no top/right)
+            "axes.linewidth":   0.9,
+            "lines.linewidth":  1.5,
+            "axes.spines.top":   False,
+            "axes.spines.right": False,
+            "xtick.major.width": 0.9,
+            "ytick.major.width": 0.9,
+            "xtick.direction":  "out",
+            "ytick.direction":  "out",
+            "xtick.major.size": 3.0,
+            "ytick.major.size": 3.0,
+            # Grid (light, only y by default)
+            "axes.grid":        False,
             "grid.alpha":       0.25,
-            "grid.linestyle":   "--",
-            "grid.linewidth":   0.5,
+            "grid.linestyle":   "-",
+            "grid.linewidth":   0.4,
             # Output
             "figure.dpi":       150,
             "savefig.dpi":      300,
             "savefig.bbox":     "tight",
-            "pdf.fonttype":     42,   # editable text in vector PDFs
+            "pdf.fonttype":     42,
             "ps.fonttype":      42,
         }
     )
@@ -157,140 +164,157 @@ def save(fig, out_dir: Path, name: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Figure 1 — Accuracy vs communication round (per dataset)
+# Figure 1 — Accuracy vs communication round (vertically stacked, Nature-style)
 # ---------------------------------------------------------------------------
+
+# Algorithms excluded from all per-round figures (Per-FedAvg removed by request)
+_EXCLUDE = {"PerAvg", "Per-FedAvg"}
+
 
 def plot_fig1(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig1_comm_rounds.json")
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8), sharey=False)
+    fig, axes = plt.subplots(2, 1, figsize=(7.0, 7.4), sharey=False)
 
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
+    panel_labels = ["a", "b"]
+    for ax, ds, plab in zip(axes, ["EMNIST-Letters", "CIFAR100"], panel_labels):
         for algo, info in data[ds].items():
+            if algo in _EXCLUDE:
+                continue
             name = info["display_name"]
             sty = style_for(name)
-            mevery = max(1, len(info["rounds"]) // 10)
+            mevery = max(1, len(info["rounds"]) // 12)
             ax.plot(
                 info["rounds"], info["accuracy"],
                 label=name,
-                markevery=mevery, markersize=3.5, markerfacecolor="white",
-                linewidth=1.8 if name == "CollEdge" else 1.0,
+                markevery=mevery, markersize=4.5, markerfacecolor="white",
+                markeredgewidth=1.0,
+                linewidth=2.2 if name == "CollEdge" else 1.2,
                 zorder=10 if name == "CollEdge" else 4,
                 **sty,
             )
-        ax.set_title(DS_TITLES[ds])
         ax.set_xlabel("Communication round")
-        ax.set_ylabel("Average accuracy (\\%)" if ax is axes[0] else "")
+        ax.set_ylabel("Average accuracy (%)")
+        ax.set_title(DS_TITLES[ds], loc="center", pad=6)
+        # Nature-style panel label
+        ax.text(-0.08, 1.02, plab, transform=ax.transAxes,
+                fontsize=14, fontweight="bold", va="bottom", ha="right")
         # task boundary guides
         n_rounds = len(next(iter(data[ds].values()))["rounds"])
         n_tasks = 6 if ds == "EMNIST-Letters" else 10
         for t in range(1, n_tasks):
-            ax.axvline(t * n_rounds // n_tasks, color="0.7",
+            ax.axvline(t * n_rounds // n_tasks, color="0.75",
                        linestyle=":", linewidth=0.6, zorder=1)
+        ax.margins(x=0.01)
+        ax.tick_params(top=False, right=False)
 
     # Single shared legend below the figure
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=5,
-               frameon=False, bbox_to_anchor=(0.5, -0.05))
-    fig.tight_layout(rect=[0, 0.04, 1, 1])
+    fig.legend(handles, labels, loc="lower center", ncol=4,
+               frameon=False, bbox_to_anchor=(0.5, -0.02))
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
     save(fig, out_dir, "fig1_comm_rounds")
 
 
 # ---------------------------------------------------------------------------
-# Figure 2 — Forgetting heat-map (CollEdge vs FedAvg)
+# Figure 2 — Forgetting heat-maps (split into two files, one per algorithm)
 # ---------------------------------------------------------------------------
 
-def plot_fig2(data_dir: Path, out_dir: Path) -> None:
-    data = load(data_dir, "fig2_forgetting_staircase.json")
-    targets = ["CollEdge", "FedAvg"]
-    fig, axes = plt.subplots(2, 2, figsize=(7.0, 6.0))
-
+def _plot_fig2_for(data: dict, algo: str, out_dir: Path, suffix: str) -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.4))
     cmap = plt.cm.RdYlGn
     norm = plt.Normalize(0, 100)
 
-    for r, ds in enumerate(["EMNIST-Letters", "CIFAR100"]):
-        for c, algo in enumerate(targets):
-            ax = axes[r, c]
-            if algo not in data[ds]:
-                ax.set_visible(False)
-                continue
-            info = data[ds][algo]
-            n = info["n_tasks"]
-            # The raw matrix is a staircase (row t has t+1 entries). Pad to n×n.
-            raw = info["per_task_acc_matrix"]
-            mat = np.full((n, n), np.nan, dtype=float)
-            for t, row in enumerate(raw):
-                for j, v in enumerate(row):
-                    mat[t, j] = v
+    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
+        if algo not in data[ds]:
+            ax.set_visible(False)
+            continue
+        info = data[ds][algo]
+        n = info["n_tasks"]
+        raw = info["per_task_acc_matrix"]
+        mat = np.full((n, n), np.nan, dtype=float)
+        for t, row in enumerate(raw):
+            for j, v in enumerate(row):
+                mat[t, j] = v
 
-            disp = np.ma.array(mat, mask=np.isnan(mat))
-            ax.imshow(disp, cmap=cmap, norm=norm, aspect="equal")
+        disp = np.ma.array(mat, mask=np.isnan(mat))
+        ax.imshow(disp, cmap=cmap, norm=norm, aspect="equal")
 
-            for t in range(n):
-                for j in range(t + 1):
-                    if np.isnan(mat[t, j]):
-                        continue
-                    val = mat[t, j]
-                    txt_color = "black" if 25 < val < 75 else "white"
-                    ax.text(j, t, f"{val:.0f}", ha="center", va="center",
-                            fontsize=6.5, color=txt_color)
+        for t in range(n):
+            for j in range(t + 1):
+                if np.isnan(mat[t, j]):
+                    continue
+                val = mat[t, j]
+                txt_color = "black" if 25 < val < 75 else "white"
+                ax.text(j, t, f"{val:.0f}", ha="center", va="center",
+                        fontsize=7.5, color=txt_color)
 
-            ax.set_xticks(range(n))
-            ax.set_yticks(range(n))
-            ax.set_xticklabels([f"T{i+1}" for i in range(n)])
-            ax.set_yticklabels([f"after T{i+1}" for i in range(n)])
-            ax.tick_params(length=0)
-            ax.set_title(f"{DS_TITLES[ds]} — {algo}")
-            if c == 0:
-                ax.set_ylabel("Training stage")
-            ax.set_xlabel("Test task")
-            for s in ax.spines.values():
-                s.set_visible(False)
+        ax.set_xticks(range(n))
+        ax.set_yticks(range(n))
+        ax.set_xticklabels([f"T{i+1}" for i in range(n)])
+        ax.set_yticklabels([f"after T{i+1}" for i in range(n)])
+        ax.tick_params(length=0, top=False, right=False)
+        ax.set_xlabel("Test task")
+        ax.set_ylabel("Training stage")
+        for s in ax.spines.values():
+            s.set_visible(False)
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=axes.ravel().tolist(),
                         fraction=0.025, pad=0.02, shrink=0.85)
-    cbar.set_label("Accuracy (\\%)", fontsize=8)
-    cbar.ax.tick_params(labelsize=7)
-    save(fig, out_dir, "fig2_forgetting_heatmap")
+    cbar.set_label("Accuracy (%)")
+    save(fig, out_dir, f"fig2_forgetting_heatmap_{suffix}")
+
+
+def plot_fig2(data_dir: Path, out_dir: Path) -> None:
+    data = load(data_dir, "fig2_forgetting_staircase.json")
+    _plot_fig2_for(data, "CollEdge", out_dir, "colledge")
+    _plot_fig2_for(data, "FedAvg",   out_dir, "fedavg")
 
 
 # ---------------------------------------------------------------------------
-# Figure 3 — Aggregation effect (CollEdge vs Local vs FedAvg vs DCFCL)
+# Figure 3 — Aggregation effect (smaller markers)
 # ---------------------------------------------------------------------------
 
 def plot_fig3(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig3_aggregation_effect.json")
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
 
     for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
         for algo, info in data[ds].items():
             name = info["display_name"]
+            if name in _EXCLUDE:
+                continue
             sty = style_for(name)
+            n = len(info["rounds"])
+            mevery = max(1, n // 14)
             ax.plot(info["rounds"], info["accuracy"], label=name,
-                    linewidth=1.8 if name == "CollEdge" else 1.0,
+                    linewidth=2.0 if name == "CollEdge" else 1.1,
+                    markersize=2.8, markevery=mevery,
+                    markerfacecolor="white", markeredgewidth=0.8,
                     zorder=10 if name == "CollEdge" else 4, **sty)
         ax.set_title(DS_TITLES[ds])
         ax.set_xlabel("Communication round")
-        ax.set_ylabel("Average accuracy (\\%)" if ax is axes[0] else "")
+        ax.set_ylabel("Average accuracy (%)" if ax is axes[0] else "")
+        ax.tick_params(top=False, right=False)
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=4,
                frameon=False, bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=[0, 0.04, 1, 1])
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
     save(fig, out_dir, "fig3_aggregation_effect")
 
 
 # ---------------------------------------------------------------------------
-# Figure 4 — Final per-task accuracy (emergence snapshot)
+# Figure 4 — Final per-task accuracy (CollEdge vs DCFCL only)
 # ---------------------------------------------------------------------------
 
 def plot_fig4(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig4_emergence.json")
-    algos = ["CollEdge", "DCFCL", "FedAvg"]
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
+    algos = ["CollEdge", "DCFCL"]
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
 
-    bw = 0.27
+    bw = 0.38
     for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
         n = data[ds][algos[0]]["n_tasks"]
         x = np.arange(n)
@@ -298,99 +322,23 @@ def plot_fig4(data_dir: Path, out_dir: Path) -> None:
             if algo not in data[ds]:
                 continue
             vals = data[ds][algo]["final_per_task_acc"]
-            ax.bar(x + (i - 1) * bw, vals, bw,
+            offset = (i - 0.5) * bw
+            ax.bar(x + offset, vals, bw,
                    label=algo, color=PALETTE.get(algo),
-                   edgecolor="white", linewidth=0.4)
+                   edgecolor="white", linewidth=0.5)
         ax.set_xticks(x)
         ax.set_xticklabels([f"T{i+1}" for i in range(n)])
         ax.set_xlabel("Task index")
-        ax.set_ylabel("Accuracy (\\%) at final round" if ax is axes[0] else "")
+        ax.set_ylabel("Accuracy (%) at final round" if ax is axes[0] else "")
         ax.set_title(DS_TITLES[ds])
         ax.set_ylim(0, 100)
+        ax.tick_params(top=False, right=False)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=3,
+    fig.legend(handles, labels, loc="lower center", ncol=2,
                frameon=False, bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=[0, 0.04, 1, 1])
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
     save(fig, out_dir, "fig4_emergence")
-
-
-# ---------------------------------------------------------------------------
-# Figure 5 — Past-task retention timeline
-# ---------------------------------------------------------------------------
-
-def plot_fig5(data_dir: Path, out_dir: Path) -> None:
-    data = load(data_dir, "fig4_emergence.json")
-    algos = ["CollEdge", "DCFCL", "FedAvg"]
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
-
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
-        for algo in algos:
-            if algo not in data[ds]:
-                continue
-            info = data[ds][algo]
-            past = info["past_avg_over_time"]
-            stages = [i + 1 for i, v in enumerate(past) if v is not None]
-            values = [v for v in past if v is not None]
-            sty = style_for(algo)
-            ax.plot(stages, values, label=algo,
-                    linewidth=1.8 if algo == "CollEdge" else 1.0,
-                    markersize=4, markerfacecolor="white",
-                    zorder=10 if algo == "CollEdge" else 4, **sty)
-        ax.set_title(DS_TITLES[ds])
-        ax.set_xlabel("After learning task \\#")
-        ax.set_ylabel("Avg.\\ acc.\\ on previous tasks (\\%)" if ax is axes[0] else "")
-        n = data[ds][algos[0]]["n_tasks"]
-        ax.set_xticks(range(1, n + 1))
-
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=3,
-               frameon=False, bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=[0, 0.04, 1, 1])
-    save(fig, out_dir, "fig5_emergence_timeline")
-
-
-# ---------------------------------------------------------------------------
-# Figure 6 — Module ablation (horizontal bar)
-# ---------------------------------------------------------------------------
-
-def plot_fig6(data_dir: Path, out_dir: Path) -> None:
-    rows = load(data_dir, "table4_ablation.json")
-    rows_d = {r["variant"]: r for r in rows}
-    order = [
-        "DCFCL (Baseline)", "+DER++", "+DER++ +Directed",
-        "+DER++ +Coalition", "CollEdge", "Directed only", "Coalition only",
-    ]
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.2), sharey=True)
-
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
-        key = f"{ds}_avg_acc"
-        names, vals, cols = [], [], []
-        for v in order:
-            if v in rows_d and rows_d[v].get(key) is not None:
-                names.append(v)
-                vals.append(rows_d[v][key])
-                cols.append(PALETTE.get(v, "#444"))
-        y = np.arange(len(names))
-        bars = ax.barh(y, vals, color=cols, edgecolor="white",
-                       linewidth=0.4, height=0.65)
-        for b, v in zip(bars, vals):
-            ax.text(v + 0.6, b.get_y() + b.get_height() / 2,
-                    f"{v:.1f}", va="center", ha="left", fontsize=7.5)
-        ax.set_yticks(y)
-        ax.set_yticklabels(names)
-        ax.invert_yaxis()
-        ax.set_xlabel("Average accuracy (\\%)")
-        ax.set_title(DS_TITLES[ds])
-        ax.set_xlim(0, max(vals) * 1.18)
-        # bold our method's tick label
-        for lbl in ax.get_yticklabels():
-            if lbl.get_text() == "CollEdge":
-                lbl.set_fontweight("bold")
-                lbl.set_color(PALETTE["CollEdge"])
-
-    fig.tight_layout()
-    save(fig, out_dir, "fig6_ablation_bar")
 
 
 # ---------------------------------------------------------------------------
@@ -402,8 +350,6 @@ REGISTRY = {
     "fig2": plot_fig2,
     "fig3": plot_fig3,
     "fig4": plot_fig4,
-    "fig5": plot_fig5,
-    "fig6": plot_fig6,
 }
 
 
