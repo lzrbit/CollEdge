@@ -16,7 +16,7 @@ Usage:
     python main.py --algorithm FedProx --dataset EMNIST-Letters
     python main.py --algorithm Local --dataset EMNIST-Letters
 """
-
+  
 import argparse
 import logging
 import os
