@@ -36,8 +36,6 @@ datasets/
 # CIFAR dataset
 datasets/cifar-100-python/
 
-# Results (experiment outputs)
-results/
 
 # Logs
 *.log
