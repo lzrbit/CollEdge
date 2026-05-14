@@ -269,6 +269,15 @@ def gen_fig4_emergence(data):
                 "final_per_task_acc": final_row,
                 "past_tasks_avg_at_final": past_avg,
                 "current_task_acc_at_final": current_acc,
+                # Full lower-triangular per-task accuracy matrix (% in [0, 100]):
+                # per_task_acc_matrix[t][j] = accuracy on task j (j<=t) after
+                # finishing the local training of task t. Used by plot_fig4 to
+                # visualize how the accuracy on each task "emerges" stage by
+                # stage at clients that never locally trained on it.
+                "per_task_acc_matrix": [
+                    [round(v * 100, 2) for v in per_task[t]]
+                    for t in range(n)
+                ],
                 # Full history of past-task avg: how well model retains old tasks over time
                 "past_avg_over_time": [],
             }

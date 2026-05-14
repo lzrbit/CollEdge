@@ -164,67 +164,24 @@ def save(fig, out_dir: Path, name: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Figure 1 — Accuracy vs communication round (vertically stacked, Nature-style)
+# Figure 2 — Forgetting heat-maps (per dataset, 1x3 algorithm panels)
 # ---------------------------------------------------------------------------
 
-# Algorithms excluded from all per-round figures (Per-FedAvg removed by request)
+# Algorithms excluded from per-round figures (Per-FedAvg removed by request).
 _EXCLUDE = {"PerAvg", "Per-FedAvg"}
 
-
-def plot_fig1(data_dir: Path, out_dir: Path) -> None:
-    data = load(data_dir, "fig1_comm_rounds.json")
-    fig, axes = plt.subplots(2, 1, figsize=(7.0, 7.4), sharey=False)
-
-    panel_labels = ["a", "b"]
-    for ax, ds, plab in zip(axes, ["EMNIST-Letters", "CIFAR100"], panel_labels):
-        for algo, info in data[ds].items():
-            if algo in _EXCLUDE:
-                continue
-            name = info["display_name"]
-            sty = style_for(name)
-            mevery = max(1, len(info["rounds"]) // 12)
-            ax.plot(
-                info["rounds"], info["accuracy"],
-                label=name,
-                markevery=mevery, markersize=4.5, markerfacecolor="white",
-                markeredgewidth=1.0,
-                linewidth=2.2 if name == "CollEdge" else 1.2,
-                zorder=10 if name == "CollEdge" else 4,
-                **sty,
-            )
-        ax.set_xlabel("Communication round")
-        ax.set_ylabel("Average accuracy (%)")
-        ax.set_title(DS_TITLES[ds], loc="center", pad=6)
-        # Nature-style panel label
-        ax.text(-0.08, 1.02, plab, transform=ax.transAxes,
-                fontsize=14, fontweight="bold", va="bottom", ha="right")
-        # task boundary guides
-        n_rounds = len(next(iter(data[ds].values()))["rounds"])
-        n_tasks = 6 if ds == "EMNIST-Letters" else 10
-        for t in range(1, n_tasks):
-            ax.axvline(t * n_rounds // n_tasks, color="0.75",
-                       linestyle=":", linewidth=0.6, zorder=1)
-        ax.margins(x=0.01)
-        ax.tick_params(top=False, right=False)
-
-    # Single shared legend below the figure
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=4,
-               frameon=False, bbox_to_anchor=(0.5, -0.02))
-    fig.tight_layout(rect=[0, 0.05, 1, 1])
-    save(fig, out_dir, "fig1_comm_rounds")
+# Algorithm comparison set used for the forgetting heat-maps and the
+# emergence figure. Order is left-to-right / column order in those panels.
+_F2_ALGOS = ["FedAvg", "DCFCL", "CollEdge"]
 
 
-# ---------------------------------------------------------------------------
-# Figure 2 — Forgetting heat-maps (split into two files, one per algorithm)
-# ---------------------------------------------------------------------------
-
-def _plot_fig2_for(data: dict, algo: str, out_dir: Path, suffix: str) -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.4))
+def _plot_fig2_for_dataset(data: dict, ds: str, out_dir: Path, suffix: str) -> None:
+    """One PDF per dataset: 1x3 panels comparing FedAvg / DCFCL / CollEdge."""
+    fig, axes = plt.subplots(1, 3, figsize=(8.6, 3.2))
     cmap = plt.cm.RdYlGn
     norm = plt.Normalize(0, 100)
 
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
+    for ax, algo in zip(axes, _F2_ALGOS):
         if algo not in data[ds]:
             ax.set_visible(False)
             continue
@@ -239,6 +196,8 @@ def _plot_fig2_for(data: dict, algo: str, out_dir: Path, suffix: str) -> None:
         disp = np.ma.array(mat, mask=np.isnan(mat))
         ax.imshow(disp, cmap=cmap, norm=norm, aspect="equal")
 
+        # Smaller cell labels for the 10x10 CIFAR grid.
+        cell_fs = 7.5 if n <= 6 else 6.0
         for t in range(n):
             for j in range(t + 1):
                 if np.isnan(mat[t, j]):
@@ -246,7 +205,7 @@ def _plot_fig2_for(data: dict, algo: str, out_dir: Path, suffix: str) -> None:
                 val = mat[t, j]
                 txt_color = "black" if 25 < val < 75 else "white"
                 ax.text(j, t, f"{val:.0f}", ha="center", va="center",
-                        fontsize=7.5, color=txt_color)
+                        fontsize=cell_fs, color=txt_color)
 
         ax.set_xticks(range(n))
         ax.set_yticks(range(n))
@@ -254,90 +213,153 @@ def _plot_fig2_for(data: dict, algo: str, out_dir: Path, suffix: str) -> None:
         ax.set_yticklabels([f"after T{i+1}" for i in range(n)])
         ax.tick_params(length=0, top=False, right=False)
         ax.set_xlabel("Test task")
-        ax.set_ylabel("Training stage")
+        if ax is axes[0]:
+            ax.set_ylabel("Training stage")
+        ax.set_title(info["display_name"], pad=4)
         for s in ax.spines.values():
             s.set_visible(False)
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=axes.ravel().tolist(),
-                        fraction=0.025, pad=0.02, shrink=0.85)
+                        fraction=0.020, pad=0.02, shrink=0.85)
     cbar.set_label("Accuracy (%)")
     save(fig, out_dir, f"fig2_forgetting_heatmap_{suffix}")
 
 
 def plot_fig2(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig2_forgetting_staircase.json")
-    _plot_fig2_for(data, "CollEdge", out_dir, "colledge")
-    _plot_fig2_for(data, "FedAvg",   out_dir, "fedavg")
+    _plot_fig2_for_dataset(data, "EMNIST-Letters", out_dir, "emnist")
+    _plot_fig2_for_dataset(data, "CIFAR100",       out_dir, "cifar100")
 
 
 # ---------------------------------------------------------------------------
-# Figure 3 — Aggregation effect (smaller markers)
+# Figure 3 — Accuracy vs communication round (1x2, all baselines)
+#
+# Merges the previous Fig.~1 (per-round trajectories of every baseline) with
+# the previous Fig.~3 (aggregation-effect curves), since they conveyed the
+# same information. Uses the richer fig1_comm_rounds.json source.
 # ---------------------------------------------------------------------------
 
 def plot_fig3(data_dir: Path, out_dir: Path) -> None:
-    data = load(data_dir, "fig3_aggregation_effect.json")
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
+    data = load(data_dir, "fig1_comm_rounds.json")
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.2))
 
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
+    panel_labels = ["a", "b"]
+    for ax, ds, plab in zip(axes, ["EMNIST-Letters", "CIFAR100"], panel_labels):
         for algo, info in data[ds].items():
             name = info["display_name"]
             if name in _EXCLUDE:
                 continue
             sty = style_for(name)
             n = len(info["rounds"])
-            mevery = max(1, n // 14)
-            ax.plot(info["rounds"], info["accuracy"], label=name,
-                    linewidth=2.0 if name == "CollEdge" else 1.1,
-                    markersize=2.8, markevery=mevery,
-                    markerfacecolor="white", markeredgewidth=0.8,
-                    zorder=10 if name == "CollEdge" else 4, **sty)
-        ax.set_title(DS_TITLES[ds])
+            mevery = max(1, n // 12)
+            ax.plot(
+                info["rounds"], info["accuracy"],
+                label=name,
+                linewidth=2.0 if name == "CollEdge" else 1.1,
+                markersize=3.0, markevery=mevery,
+                markerfacecolor="white", markeredgewidth=0.8,
+                zorder=10 if name == "CollEdge" else 4,
+                **sty,
+            )
+        # Task-boundary guides
+        n_rounds = len(next(iter(data[ds].values()))["rounds"])
+        n_tasks = 6 if ds == "EMNIST-Letters" else 10
+        for t in range(1, n_tasks):
+            ax.axvline(t * n_rounds // n_tasks, color="0.75",
+                       linestyle=":", linewidth=0.6, zorder=1)
+        ax.set_title(DS_TITLES[ds], pad=4)
         ax.set_xlabel("Communication round")
         ax.set_ylabel("Average accuracy (%)" if ax is axes[0] else "")
+        ax.text(-0.10, 1.02, plab, transform=ax.transAxes,
+                fontsize=12, fontweight="bold", va="bottom", ha="right")
+        ax.margins(x=0.01)
         ax.tick_params(top=False, right=False)
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=4,
-               frameon=False, bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=[0, 0.05, 1, 1])
+               frameon=False, bbox_to_anchor=(0.5, -0.05))
+    fig.tight_layout(rect=[0, 0.07, 1, 1])
     save(fig, out_dir, "fig3_aggregation_effect")
 
 
 # ---------------------------------------------------------------------------
-# Figure 4 — Final per-task accuracy (CollEdge vs DCFCL only)
+# Figure 4 — Emergence: per-task accuracy trajectories (Nature-style)
+#
+# 2 (rows: datasets) x 3 (cols: FedAvg / DCFCL / CollEdge) small-multiples.
+# Each panel plots, for every task index j (encoded by a viridis colour),
+# the test accuracy on task j as the model progresses through training
+# stages t=j..n-1. A high, sustained line on a task index j << t indicates
+# that the federation continues to perform well on a task whose data the
+# typical client has not seen for many stages, i.e. the emergence effect.
 # ---------------------------------------------------------------------------
+
+# Local, Nature-style trio used only inside plot_fig4 to avoid affecting
+# the global PALETTE shared by the other figures.
+_F4_ALGOS = ["FedAvg", "DCFCL", "CollEdge"]
+
 
 def plot_fig4(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig4_emergence.json")
-    algos = ["CollEdge", "DCFCL"]
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
+    datasets = ["EMNIST-Letters", "CIFAR100"]
+    fig, axes = plt.subplots(2, 3, figsize=(8.6, 5.4),
+                             sharex=False, sharey="row")
 
-    bw = 0.38
-    for ax, ds in zip(axes, ["EMNIST-Letters", "CIFAR100"]):
-        n = data[ds][algos[0]]["n_tasks"]
-        x = np.arange(n)
-        for i, algo in enumerate(algos):
+    # Common viridis colourmap, one colour per task index.
+    cmap = plt.cm.viridis
+
+    for r, ds in enumerate(datasets):
+        # Use the n_tasks of any algorithm available for this dataset.
+        any_algo = next(a for a in _F4_ALGOS if a in data[ds])
+        n = data[ds][any_algo]["n_tasks"]
+        task_colors = [cmap(0.05 + 0.9 * (j / max(1, n - 1))) for j in range(n)]
+        stages = np.arange(1, n + 1)
+
+        for c, algo in enumerate(_F4_ALGOS):
+            ax = axes[r, c]
             if algo not in data[ds]:
+                ax.set_visible(False)
                 continue
-            vals = data[ds][algo]["final_per_task_acc"]
-            offset = (i - 0.5) * bw
-            ax.bar(x + offset, vals, bw,
-                   label=algo, color=PALETTE.get(algo),
-                   edgecolor="white", linewidth=0.5)
-        ax.set_xticks(x)
-        ax.set_xticklabels([f"T{i+1}" for i in range(n)])
-        ax.set_xlabel("Task index")
-        ax.set_ylabel("Accuracy (%) at final round" if ax is axes[0] else "")
-        ax.set_title(DS_TITLES[ds])
-        ax.set_ylim(0, 100)
-        ax.tick_params(top=False, right=False)
+            info = data[ds][algo]
+            mat = info["per_task_acc_matrix"]
+            for j in range(n):
+                # Build a per-task trajectory: y at stage t (t>=j) is mat[t][j].
+                xs = list(range(j + 1, n + 1))
+                ys = [mat[t][j] for t in range(j, n)]
+                ax.plot(xs, ys,
+                        color=task_colors[j],
+                        linewidth=1.5,
+                        marker="o", markersize=3.0,
+                        markeredgecolor=task_colors[j],
+                        markerfacecolor="white", markeredgewidth=0.8,
+                        zorder=4)
 
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=2,
-               frameon=False, bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=[0, 0.05, 1, 1])
+            ax.set_xticks(stages)
+            ax.set_xticklabels([f"T{int(s)}" for s in stages],
+                               rotation=0 if n <= 6 else 45, ha="center")
+            ax.set_xlim(0.5, n + 0.5)
+            ax.set_ylim(0, 100)
+            ax.tick_params(top=False, right=False)
+            if r == 0:
+                ax.set_title(info["display_name"], pad=4)
+            if r == len(datasets) - 1:
+                ax.set_xlabel("Training stage")
+            if c == 0:
+                ax.set_ylabel(f"{DS_TITLES[ds]}\nAccuracy (%)")
+
+    # Shared task-index colourbar on the right.
+    n_max = max(data[ds][next(a for a in _F4_ALGOS if a in data[ds])]["n_tasks"]
+                for ds in datasets)
+    sm = plt.cm.ScalarMappable(cmap=cmap,
+                               norm=plt.Normalize(1, n_max))
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=axes.ravel().tolist(),
+                        fraction=0.022, pad=0.02, shrink=0.85,
+                        ticks=np.arange(1, n_max + 1))
+    cbar.set_label("Task index $j$ (older $\\rightarrow$ newer)")
+    cbar.ax.set_yticklabels([f"T{int(t)}" for t in np.arange(1, n_max + 1)])
+
     save(fig, out_dir, "fig4_emergence")
 
 
@@ -346,7 +368,6 @@ def plot_fig4(data_dir: Path, out_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 
 REGISTRY = {
-    "fig1": plot_fig1,
     "fig2": plot_fig2,
     "fig3": plot_fig3,
     "fig4": plot_fig4,
