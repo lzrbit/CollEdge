@@ -384,6 +384,22 @@ class DCFCLServer:
             if hasattr(self.config, 'result_dir') and self.config.result_dir:
                 self.save_emergence_data(emergence_results, self.config.result_dir)
         
+        # Per-client per-task accuracy at the FINAL evaluation (after the
+        # last aggregation step). Shape: { client_id: [acc_task0, ..., acc_taskT] }
+        per_client_per_task_final = {}
+        if self.all_accs:
+            for cid, accs_list in self.all_accs[-1].items():
+                per_client_per_task_final[int(cid)] = [float(a) for a in accs_list]
+
+        # Full per-task-phase per-client matrix:
+        # per_client_per_task_history[phase][cid] = [acc_task0, ..., acc_task_phase]
+        per_client_per_task_history = []
+        for phase_dict in self.all_accs:
+            phase_serialized = {}
+            for cid, accs_list in phase_dict.items():
+                phase_serialized[int(cid)] = [float(a) for a in accs_list]
+            per_client_per_task_history.append(phase_serialized)
+
         return {
             'final_accuracy': final_accuracy,
             'forgetting_rate': forgetting_rate,
@@ -391,6 +407,8 @@ class DCFCLServer:
             'all_forgetting': self.all_forget,
             'per_task_acc': per_task_acc,
             'per_task_forget': per_task_forget,
+            'per_client_per_task_final': per_client_per_task_final,
+            'per_client_per_task_history': per_client_per_task_history,
             'emergence_results': emergence_results,
         }
     
