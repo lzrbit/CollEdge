@@ -1,5 +1,5 @@
 {
-  "fig5_bubble_matrix": {
+  "client_task_bubble": {
     "after_task_diagonal": {
       "FedAvg": [
         [
@@ -533,7 +533,7 @@
       ]
     }
   },
-  "fig6_radar_metrics": {
+  "radar_metrics": {
     "raw": {
       "FedAvg": {
         "eacc": 43.16,

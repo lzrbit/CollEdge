@@ -46,6 +46,27 @@ DATA_DIR = REPO / "paper" / "figure_data"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+# Unified font sizes (kept in sync with plot_figures.py)
+FONT_BASE       = 9.0
+FONT_TITLE      = 10.0
+FONT_AXIS_LABEL = 9.0
+FONT_TICK       = 8.0
+FONT_LEGEND     = 8.0
+
+plt.rcParams.update({
+    "font.family":      "sans-serif",
+    "font.sans-serif":  ["Arial", "Helvetica", "DejaVu Sans"],
+    "font.size":        FONT_BASE,
+    "axes.titlesize":   FONT_TITLE,
+    "axes.labelsize":   FONT_AXIS_LABEL,
+    "xtick.labelsize":  FONT_TICK,
+    "ytick.labelsize":  FONT_TICK,
+    "legend.fontsize":  FONT_LEGEND,
+    "legend.title_fontsize": FONT_LEGEND,
+    "pdf.fonttype":     42,
+    "ps.fonttype":      42,
+})
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -154,7 +175,7 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
                 xs.append(i)
                 ys.append(t)
                 vs.append(mat[i, t])
-        sizes = [40 + (max(v, 0.0) / 100.0) ** 1.2 * 750 for v in vs]
+        sizes = [25 + (max(v, 0.0) / 100.0) ** 1.2 * 380 for v in vs]
         sc = ax.scatter(xs, ys, s=sizes, c=vs, cmap=cmap, norm=norm,
                         edgecolors="black", linewidths=0.4, alpha=0.92)
         # Cell labels for high-accuracy bubbles to reinforce the contrast
@@ -163,30 +184,30 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
                 ax.text(x, y, f"{v:.0f}", ha="center", va="center",
                         fontsize=6.2, color="white", fontweight="bold")
         ax.set_xticks(range(N))
-        ax.set_xticklabels([f"C{i+1}" for i in range(N)], fontsize=8)
+        ax.set_xticklabels([f"C{i+1}" for i in range(N)], fontsize=FONT_TICK)
         ax.set_yticks(range(T))
-        ax.set_yticklabels([f"T{t+1}" for t in range(T)], fontsize=8)
+        ax.set_yticklabels([f"T{t+1}" for t in range(T)], fontsize=FONT_TICK)
         ax.set_xlim(-0.7, N - 0.3)
         ax.set_ylim(-0.7, T - 0.3)
         ax.invert_yaxis()  # T1 on top
         ax.grid(True, linestyle=":", linewidth=0.4, alpha=0.55)
         ax.set_axisbelow(True)
         if r == 0:
-            ax.set_title(alg_label, fontsize=10.5, pad=4)
+            ax.set_title(alg_label, fontsize=FONT_TITLE, pad=4)
         if c == 0:
-            ax.set_ylabel(row_label, fontsize=10.0)
+            ax.set_ylabel(row_label, fontsize=FONT_AXIS_LABEL)
         if r == 1:
-            ax.set_xlabel("Client", fontsize=9.0)
+            ax.set_xlabel("Client", fontsize=FONT_AXIS_LABEL)
 
     cbar = fig.colorbar(sc, ax=axes.ravel().tolist(), shrink=0.85, pad=0.025,
                         location="right", fraction=0.022)
-    cbar.set_label("Per-client per-task accuracy (%)", fontsize=9)
-    cbar.ax.tick_params(labelsize=8)
+    cbar.set_label("Per-client per-task accuracy (%)", fontsize=FONT_AXIS_LABEL)
+    cbar.ax.tick_params(labelsize=FONT_TICK)
 
     fig.suptitle(
         "Client x Task accuracy on EMNIST-Letters: "
         "after-task (top) vs. end-of-stream (bottom)",
-        fontsize=11.5, y=0.995,
+        fontsize=FONT_TITLE, y=0.995,
     )
     fig.savefig(out_pdf, bbox_inches="tight", dpi=300)
     fig.savefig(out_pdf.with_suffix(".png"), bbox_inches="tight", dpi=200)
@@ -253,10 +274,10 @@ def plot_radar(out_pdf: Path):
     ax.set_rlabel_position(90)
     ax.set_ylim(0, 1.0)
     ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=7,
+    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=FONT_TICK,
                        color="0.4")
     ax.set_xticks(angles)
-    ax.set_xticklabels([lbl for lbl, _, _ in RADAR_AXES], fontsize=9)
+    ax.set_xticklabels([lbl for lbl, _, _ in RADAR_AXES], fontsize=FONT_AXIS_LABEL)
     ax.tick_params(axis="x", pad=14)
 
     palette = {
@@ -283,10 +304,10 @@ def plot_radar(out_pdf: Path):
         handles.append(line)
 
     ax.set_title("Multi-metric Comparison (outer = better)",
-                 fontsize=11.5, pad=18)
+                 fontsize=FONT_TITLE, pad=18)
     ax.legend(handles=handles, loc="lower center",
               bbox_to_anchor=(0.5, -0.18), ncol=3,
-              fontsize=8.5, frameon=False)
+              fontsize=FONT_LEGEND, frameon=False)
     fig.subplots_adjust(left=0.08, right=0.92, top=0.88, bottom=0.18)
     fig.savefig(out_pdf, bbox_inches="tight", dpi=300)
     fig.savefig(out_pdf.with_suffix(".png"), bbox_inches="tight", dpi=200)
@@ -319,19 +340,19 @@ def main() -> None:
         final_data[label] = final.tolist()
     panels = diag_panels + final_panels
     if panels:
-        plot_bubble_matrix(panels, FIG_DIR / "fig5_bubble_matrix.pdf")
+        plot_bubble_matrix(panels, FIG_DIR / "client_task_bubble.pdf")
 
     # ------ fig6 ------
-    plot_radar(FIG_DIR / "fig6_radar_metrics.pdf")
+    plot_radar(FIG_DIR / "radar_metrics.pdf")
 
     # ------ dump data ------
     norm_mat, algs = _radar_normalised()
     out = {
-        "fig5_bubble_matrix": {
+        "client_task_bubble": {
             "after_task_diagonal": diag_data,
             "end_of_stream": final_data,
         },
-        "fig6_radar_metrics": {
+        "radar_metrics": {
             "raw": RADAR_DATA,
             "axes": [
                 {"label": lbl, "key": key, "invert_for_outer_is_better": inv}
@@ -342,7 +363,7 @@ def main() -> None:
             },
         },
     }
-    out_json = DATA_DIR / "fig56_extra.json"
+    out_json = DATA_DIR / "extra_figures.json"
     with open(out_json, "w") as f:
         json.dump(out, f, indent=2)
     print(f"[v] {out_json.relative_to(REPO)}")

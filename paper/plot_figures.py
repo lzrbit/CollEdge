@@ -93,7 +93,21 @@ DS_TITLES = {
 }
 
 
-def apply_style() -> None:
+# ---------------------------------------------------------------------------
+# Unified font sizes for ALL figures (override per-figure where noted).
+# Chosen so that figure title / axis label / tick label / legend stay
+# visually consistent across heat-maps, line plots, polar plots, etc.
+# ---------------------------------------------------------------------------
+FONT_BASE        = 9.0
+FONT_TITLE       = 10.0
+FONT_AXIS_LABEL  = 9.0
+FONT_TICK        = 8.0
+FONT_LEGEND      = 8.0
+
+
+def apply_style(*, base: float = FONT_BASE, title: float = FONT_TITLE,
+                axis_label: float = FONT_AXIS_LABEL, tick: float = FONT_TICK,
+                legend: float = FONT_LEGEND) -> None:
     """Single-source rcParams preset (Arial, Nature-style)."""
     plt.rcParams.update(
         {
@@ -104,13 +118,13 @@ def apply_style() -> None:
             "mathtext.rm":      "Arial",
             "mathtext.it":      "Arial:italic",
             "mathtext.bf":      "Arial:bold",
-            "font.size":        11.0,
-            "axes.titlesize":   12.0,
-            "axes.labelsize":   12.0,
-            "xtick.labelsize":  10.5,
-            "ytick.labelsize":  10.5,
-            "legend.fontsize":  10.0,
-            "legend.title_fontsize": 10.5,
+            "font.size":        base,
+            "axes.titlesize":   title,
+            "axes.labelsize":   axis_label,
+            "xtick.labelsize":  tick,
+            "ytick.labelsize":  tick,
+            "legend.fontsize":  legend,
+            "legend.title_fontsize": legend,
             # Lines / spines (Nature-like: thin, no top/right)
             "axes.linewidth":   0.9,
             "lines.linewidth":  1.5,
@@ -197,7 +211,7 @@ def _plot_fig2_for_dataset(data: dict, ds: str, out_dir: Path, suffix: str) -> N
         ax.imshow(disp, cmap=cmap, norm=norm, aspect="equal")
 
         # Smaller cell labels for the 10x10 CIFAR grid.
-        cell_fs = 7.5 if n <= 6 else 6.0
+        cell_fs = 6.5 if n <= 6 else 5.5
         for t in range(n):
             for j in range(t + 1):
                 if np.isnan(mat[t, j]):
@@ -224,7 +238,7 @@ def _plot_fig2_for_dataset(data: dict, ds: str, out_dir: Path, suffix: str) -> N
     cbar = fig.colorbar(sm, ax=axes.ravel().tolist(),
                         fraction=0.020, pad=0.02, shrink=0.85)
     cbar.set_label("Accuracy (%)")
-    save(fig, out_dir, f"fig2_forgetting_heatmap_{suffix}")
+    save(fig, out_dir, f"forgetting_heatmap_{suffix}")
 
 
 def plot_fig2(data_dir: Path, out_dir: Path) -> None:
@@ -243,7 +257,9 @@ def plot_fig2(data_dir: Path, out_dir: Path) -> None:
 
 def plot_fig3(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig1_comm_rounds.json")
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.2))
+    # Smaller fonts dedicated to this figure (request: shrink for clarity).
+    apply_style(base=7.5, title=8.5, axis_label=8.0, tick=7.0, legend=7.0)
+    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
 
     panel_labels = ["a", "b"]
     for ax, ds, plab in zip(axes, ["EMNIST-Letters", "CIFAR100"], panel_labels):
@@ -257,9 +273,9 @@ def plot_fig3(data_dir: Path, out_dir: Path) -> None:
             ax.plot(
                 info["rounds"], info["accuracy"],
                 label=name,
-                linewidth=2.0 if name == "CollEdge" else 1.1,
-                markersize=3.0, markevery=mevery,
-                markerfacecolor="white", markeredgewidth=0.8,
+                linewidth=1.7 if name == "CollEdge" else 1.0,
+                markersize=2.6, markevery=mevery,
+                markerfacecolor="white", markeredgewidth=0.7,
                 zorder=10 if name == "CollEdge" else 4,
                 **sty,
             )
@@ -268,12 +284,12 @@ def plot_fig3(data_dir: Path, out_dir: Path) -> None:
         n_tasks = 6 if ds == "EMNIST-Letters" else 10
         for t in range(1, n_tasks):
             ax.axvline(t * n_rounds // n_tasks, color="0.75",
-                       linestyle=":", linewidth=0.6, zorder=1)
-        ax.set_title(DS_TITLES[ds], pad=4)
+                       linestyle=":", linewidth=0.5, zorder=1)
+        ax.set_title(DS_TITLES[ds], pad=3)
         ax.set_xlabel("Communication round")
         ax.set_ylabel("Average accuracy (%)" if ax is axes[0] else "")
         ax.text(-0.10, 1.02, plab, transform=ax.transAxes,
-                fontsize=12, fontweight="bold", va="bottom", ha="right")
+                fontsize=8.5, fontweight="bold", va="bottom", ha="right")
         ax.margins(x=0.01)
         ax.tick_params(top=False, right=False)
 
@@ -281,7 +297,9 @@ def plot_fig3(data_dir: Path, out_dir: Path) -> None:
     fig.legend(handles, labels, loc="lower center", ncol=4,
                frameon=False, bbox_to_anchor=(0.5, -0.05))
     fig.tight_layout(rect=[0, 0.07, 1, 1])
-    save(fig, out_dir, "fig3_aggregation_effect")
+    save(fig, out_dir, "accuracy_vs_round")
+    # Restore unified style for any subsequent figure.
+    apply_style()
 
 
 # ---------------------------------------------------------------------------
@@ -303,64 +321,60 @@ _F4_ALGOS = ["FedAvg", "DCFCL", "CollEdge"]
 def plot_fig4(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig4_emergence.json")
     datasets = ["EMNIST-Letters", "CIFAR100"]
-    fig, axes = plt.subplots(2, 3, figsize=(8.6, 5.4),
-                             sharex=False, sharey="row")
 
-    # Common viridis colourmap, one colour per task index.
+    # Build flat 1x6 panel list: (dataset, algorithm) for each column.
+    panels = [(ds, alg) for ds in datasets for alg in _F4_ALGOS
+              if alg in data[ds]]
+    n_panels = len(panels)
+
+    fig, axes = plt.subplots(1, n_panels, figsize=(2.05 * n_panels, 2.6),
+                             sharex=False, sharey=True)
+    if n_panels == 1:
+        axes = np.array([axes])
+
     cmap = plt.cm.viridis
+    n_max = max(data[ds][alg]["n_tasks"] for ds, alg in panels)
 
-    for r, ds in enumerate(datasets):
-        # Use the n_tasks of any algorithm available for this dataset.
-        any_algo = next(a for a in _F4_ALGOS if a in data[ds])
-        n = data[ds][any_algo]["n_tasks"]
+    for c, (ds, algo) in enumerate(panels):
+        ax = axes[c]
+        info = data[ds][algo]
+        n = info["n_tasks"]
         task_colors = [cmap(0.05 + 0.9 * (j / max(1, n - 1))) for j in range(n)]
         stages = np.arange(1, n + 1)
+        mat = info["per_task_acc_matrix"]
+        for j in range(n):
+            xs = list(range(j + 1, n + 1))
+            ys = [mat[t][j] for t in range(j, n)]
+            ax.plot(xs, ys,
+                    color=task_colors[j],
+                    linewidth=1.3,
+                    marker="o", markersize=2.5,
+                    markeredgecolor=task_colors[j],
+                    markerfacecolor="white", markeredgewidth=0.7,
+                    zorder=4)
 
-        for c, algo in enumerate(_F4_ALGOS):
-            ax = axes[r, c]
-            if algo not in data[ds]:
-                ax.set_visible(False)
-                continue
-            info = data[ds][algo]
-            mat = info["per_task_acc_matrix"]
-            for j in range(n):
-                # Build a per-task trajectory: y at stage t (t>=j) is mat[t][j].
-                xs = list(range(j + 1, n + 1))
-                ys = [mat[t][j] for t in range(j, n)]
-                ax.plot(xs, ys,
-                        color=task_colors[j],
-                        linewidth=1.5,
-                        marker="o", markersize=3.0,
-                        markeredgecolor=task_colors[j],
-                        markerfacecolor="white", markeredgewidth=0.8,
-                        zorder=4)
-
-            ax.set_xticks(stages)
-            ax.set_xticklabels([f"T{int(s)}" for s in stages],
-                               rotation=0 if n <= 6 else 45, ha="center")
-            ax.set_xlim(0.5, n + 0.5)
-            ax.set_ylim(0, 100)
-            ax.tick_params(top=False, right=False)
-            if r == 0:
-                ax.set_title(info["display_name"], pad=4)
-            if r == len(datasets) - 1:
-                ax.set_xlabel("Training stage")
-            if c == 0:
-                ax.set_ylabel(f"{DS_TITLES[ds]}\nAccuracy (%)")
+        ax.set_xticks(stages)
+        ax.set_xticklabels([f"T{int(s)}" for s in stages],
+                           rotation=0 if n <= 6 else 45, ha="center")
+        ax.set_xlim(0.5, n + 0.5)
+        ax.set_ylim(0, 100)
+        ax.tick_params(top=False, right=False)
+        # Two-line title: dataset on top, algorithm beneath.
+        ax.set_title(f"{DS_TITLES[ds]}\n{info['display_name']}", pad=4)
+        ax.set_xlabel("Training stage")
+        if c == 0:
+            ax.set_ylabel("Accuracy (%)")
 
     # Shared task-index colourbar on the right.
-    n_max = max(data[ds][next(a for a in _F4_ALGOS if a in data[ds])]["n_tasks"]
-                for ds in datasets)
-    sm = plt.cm.ScalarMappable(cmap=cmap,
-                               norm=plt.Normalize(1, n_max))
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(1, n_max))
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=axes.ravel().tolist(),
-                        fraction=0.022, pad=0.02, shrink=0.85,
+                        fraction=0.012, pad=0.015, shrink=0.85,
                         ticks=np.arange(1, n_max + 1))
     cbar.set_label("Task index $j$ (older $\\rightarrow$ newer)")
     cbar.ax.set_yticklabels([f"T{int(t)}" for t in np.arange(1, n_max + 1)])
 
-    save(fig, out_dir, "fig4_emergence")
+    save(fig, out_dir, "emergence_trajectories")
 
 
 # ---------------------------------------------------------------------------
