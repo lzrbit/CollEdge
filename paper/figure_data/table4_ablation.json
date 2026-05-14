@@ -44,8 +44,8 @@
     "DER": "\u2713",
     "Directed": "\u2713",
     "Coalition": "\u2713",
-    "EMNIST-Letters_avg_acc": 90.45,
-    "EMNIST-Letters_forgetting": 10.05,
+    "EMNIST-Letters_avg_acc": 93.72,
+    "EMNIST-Letters_forgetting": 9.49,
     "CIFAR100_avg_acc": 24.28,
     "CIFAR100_forgetting": 43.58
   },

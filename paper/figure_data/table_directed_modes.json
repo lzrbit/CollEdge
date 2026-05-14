@@ -1,0 +1,23 @@
+[
+  {
+    "mode": "Gradient-based",
+    "EMNIST-Letters_avg_acc": 93.72,
+    "EMNIST-Letters_forgetting": 9.49,
+    "CIFAR100_avg_acc": null,
+    "CIFAR100_forgetting": null
+  },
+  {
+    "mode": "Task-aware",
+    "EMNIST-Letters_avg_acc": 92.68,
+    "EMNIST-Letters_forgetting": 12.02,
+    "CIFAR100_avg_acc": null,
+    "CIFAR100_forgetting": null
+  },
+  {
+    "mode": "Hybrid",
+    "EMNIST-Letters_avg_acc": 93.66,
+    "EMNIST-Letters_forgetting": 9.62,
+    "CIFAR100_avg_acc": null,
+    "CIFAR100_forgetting": null
+  }
+]
