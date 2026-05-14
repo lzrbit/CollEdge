@@ -400,6 +400,28 @@ class DCFCLServer:
                 phase_serialized[int(cid)] = [float(a) for a in accs_list]
             per_client_per_task_history.append(phase_serialized)
 
+        # Bubble-matrix-friendly views derived from the same source:
+        # per_client_diag_acc[cid][t] = accuracy of client cid on task t,
+        #     measured right after task t finished (before subsequent stream).
+        # per_client_final_acc[cid][t] = end-of-stream accuracy of client cid
+        #     on task t, after the full continual stream + aggregation.
+        per_client_diag_acc = {}
+        per_client_final_acc = {}
+        if self.all_accs:
+            client_ids = sorted(self.all_accs[-1].keys())
+            num_phases = len(self.all_accs)
+            for cid in client_ids:
+                diag = []
+                for t in range(num_phases):
+                    accs_t = self.all_accs[t]
+                    if cid in accs_t and t < len(accs_t[cid]):
+                        diag.append(float(accs_t[cid][t]))
+                    else:
+                        diag.append(0.0)
+                per_client_diag_acc[str(cid)] = diag
+                final_row = self.all_accs[-1].get(cid, [])
+                per_client_final_acc[str(cid)] = [float(x) for x in final_row]
+
         return {
             'final_accuracy': final_accuracy,
             'forgetting_rate': forgetting_rate,
@@ -409,6 +431,8 @@ class DCFCLServer:
             'per_task_forget': per_task_forget,
             'per_client_per_task_final': per_client_per_task_final,
             'per_client_per_task_history': per_client_per_task_history,
+            'per_client_diag_acc': per_client_diag_acc,
+            'per_client_final_acc': per_client_final_acc,
             'emergence_results': emergence_results,
         }
     
