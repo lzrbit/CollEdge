@@ -68,17 +68,29 @@ def load_all():
                     with open(rf) as f:
                         data[ds][algo] = json.load(f)
 
-        # Ablation
+        # Ablation. Prefer "<dir>_retuned" when present (used for CIFAR-100
+        # rows C / F, re-run with Full's tuned HP for a fair ablation), and
+        # prefer "best_hp/results.json" inside the chosen dir when present
+        # (used for the Full row after analyze_and_update.py promotes the
+        # best sweep run).
         apath = os.path.join(RESULTS_BASE, "ablation", ds)
         if os.path.isdir(apath):
             for adir, aname in ABLATION_NAMES.items():
-                dpath = os.path.join(apath, adir)
-                if os.path.isdir(dpath):
-                    for exp_dir in os.listdir(dpath):
-                        rf = os.path.join(dpath, exp_dir, "results.json")
-                        if os.path.exists(rf):
-                            with open(rf) as f:
-                                data[ds][aname] = json.load(f)
+                retuned = os.path.join(apath, adir + "_retuned")
+                original = os.path.join(apath, adir)
+                target = retuned if os.path.isdir(retuned) else original
+                if not os.path.isdir(target):
+                    continue
+                best_hp_rf = os.path.join(target, "best_hp", "results.json")
+                if os.path.exists(best_hp_rf):
+                    with open(best_hp_rf) as f:
+                        data[ds][aname] = json.load(f)
+                    continue
+                for exp_dir in sorted(os.listdir(target)):
+                    rf = os.path.join(target, exp_dir, "results.json")
+                    if os.path.exists(rf):
+                        with open(rf) as f:
+                            data[ds][aname] = json.load(f)
     return data
 
 # ─── Fig 1: Communication Rounds vs Accuracy (all methods, all datasets) ─────

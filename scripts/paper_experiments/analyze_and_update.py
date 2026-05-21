@@ -159,6 +159,12 @@ def update_fig3():
 
 # ─── Step 3: Update table4_ablation.json ─────────────────────────────────────
 
+def _avg_acc_npmean(d: dict) -> float:
+    """Average over all_accuracies (matches generate_figure_data.py's table4)."""
+    a = d.get("all_accuracies") or []
+    return sum(a) / len(a) if a else float("nan")
+
+
 def update_table4():
     print("\n=== Step 3: Updating table4_ablation.json ===")
     table4 = _load(FIG_DATA / "table4_ablation.json")
@@ -167,12 +173,14 @@ def update_table4():
         _, best_data = find_best_hp(ds)
         if best_data is None:
             continue
-        # Update the CollEdge row (variant == "CollEdge")
-        avg_t = _avg_task(best_data)
+        # Use np.mean(all_accuracies) to match generate_figure_data.py's
+        # table4 metric (paper reports this). _avg_task (per_task_acc-mean)
+        # is used only for HP ranking, not for the displayed value.
+        avg_acc = _avg_acc_npmean(best_data)
         forget = best_data.get("forgetting_rate", 0.0)
         for row in table4:
             if row.get("variant") == "CollEdge":
-                row[ds + "_avg_acc"] = round(avg_t * 100, 2)
+                row[ds + "_avg_acc"] = round(avg_acc * 100, 2)
                 row[ds + "_forgetting"] = round(forget * 100, 2)
                 print(f"  [✓] Updated CollEdge {ds}: "
                       f"avg_acc={row[ds+'_avg_acc']:.2f} "
@@ -197,9 +205,9 @@ def build_directed_modes_table():
             modes = load_directed_modes(ds)
             if mode in modes:
                 d = modes[mode]
-                avg_t = _avg_task(d)
+                avg_acc = _avg_acc_npmean(d)
                 forget = d.get("forgetting_rate", 0.0)
-                row[ds + "_avg_acc"] = round(avg_t * 100, 2)
+                row[ds + "_avg_acc"] = round(avg_acc * 100, 2)
                 row[ds + "_forgetting"] = round(forget * 100, 2)
             else:
                 row[ds + "_avg_acc"] = None
@@ -256,13 +264,15 @@ def update_latex():
     print("\n=== Step 6: Updating main.tex ===")
 
     # ---- Load best HP numbers ----
+    # Use np.mean(all_accuracies) for the displayed avg_acc to match the
+    # paper's table4 metric. _avg_task is per_task_acc-mean and is only
+    # used for HP ranking.
     best = {}  # best[ds] = {'avg_acc': float, 'forget': float, 'final': float}
     for ds in DATASETS:
         _, d = find_best_hp(ds)
         if d:
-            avg_t = _avg_task(d)
             best[ds] = {
-                "avg_acc": _pct(avg_t),
+                "avg_acc": _pct(_avg_acc_npmean(d)),
                 "forget":  _pct(d.get("forgetting_rate", 0.0)),
                 "final":   _pct(d.get("final_accuracy", 0.0)),
             }
@@ -378,18 +388,18 @@ def _build_directed_modes_latex(dm: dict[str, dict[str, dict]]) -> str:
         if not d:
             return "--"
         if key == "avg_acc":
-            v = _avg_task(d) * 100
+            v = _avg_acc_npmean(d) * 100
         else:
             v = d.get("forgetting_rate", 0.0) * 100
         return f"{v:.2f}"
 
-    # Find best mode per dataset
+    # Find best mode per dataset (rank by np.mean for table consistency)
     best_mode = {}
     for ds in DATASETS:
         modes_d = dm.get(ds, {})
         if modes_d:
             best_mode[ds] = max(modes_d.keys(),
-                                key=lambda m: _avg_task(modes_d[m]))
+                                key=lambda m: _avg_acc_npmean(modes_d[m]))
 
     def _bf(mode: str, ds: str, key: str) -> str:
         val = _num(mode, ds, key)

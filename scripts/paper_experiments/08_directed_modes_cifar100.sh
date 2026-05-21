@@ -5,7 +5,12 @@
 #           Compares gradient / task_aware / hybrid directed-aggregation
 #           strategies on the FULL CollEdge configuration.
 #
-# Total runs: 3
+#           This version runs the first two modes IN PARALLEL on
+#           the same GPU (one ResNet-18/CIFAR-100 job fits in ~6 GB,
+#           so two fit comfortably in 16 GB) to roughly halve the
+#           wall-clock cost of Stage 4.
+#
+# Total runs: 3 (gradient ‖ task_aware, then hybrid)
 #
 # Results : results/paper_experiments/directed_modes/CIFAR100/
 # Usage   : bash scripts/paper_experiments/08_directed_modes_cifar100.sh
@@ -47,8 +52,20 @@ run_mode() {
     && _log "<<< mode=$mode DONE" || _log "<<< mode=$mode FAILED"
 }
 
+# Note: when the pipeline transitions from Stage 3 to Stage 4 it may
+# overlap with a still-running parallel 06b probe. To avoid a 3-process
+# GPU memory blow-up, run the first mode (gradient) solo first; by the
+# time it finishes, any earlier overlap will have cleared, and we can
+# safely run the remaining two modes in parallel.
+_log "Running gradient solo first (clears any prior parallel probe)…"
 run_mode gradient
-run_mode task_aware
-run_mode hybrid
+
+_log "Launching task_aware and hybrid in parallel…"
+run_mode task_aware &
+PID_T=$!
+run_mode hybrid &
+PID_H=$!
+wait $PID_T; wait $PID_H
+_log "Parallel pair complete."
 
 _log "=== END 08_directed_modes_cifar100.sh ==="
