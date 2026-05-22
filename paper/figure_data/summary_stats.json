@@ -48,8 +48,8 @@
       "final_acc_pct": 20.82,
       "forgetting_pct": 79.99
     },
-    "CollEdge": {
-      "display": "CollEdge",
+    "DynDFCL": {
+      "display": "DynDFCL",
       "avg_acc_pct": 90.45,
       "final_acc_pct": 86.39,
       "forgetting_pct": 10.05
@@ -134,8 +134,8 @@
       "final_acc_pct": 9.99,
       "forgetting_pct": 25.45
     },
-    "CollEdge": {
-      "display": "CollEdge",
+    "DynDFCL": {
+      "display": "DynDFCL",
       "avg_acc_pct": 24.28,
       "final_acc_pct": 19.39,
       "forgetting_pct": 43.58

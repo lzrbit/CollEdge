@@ -15,7 +15,7 @@ Generate two additional result figures for the JSTSP submission.
       Bubble area + colour both encode accuracy in [0, 100].
 
   fig6_radar_metrics.{pdf,png}
-      Five-axis radar chart comparing CollEdge (gradient mode, HP-tuned)
+      Five-axis radar chart comparing DynDFCL (gradient mode, HP-tuned)
       against representative baselines on:
           1. EMNIST-Letters average accuracy
           2. EMNIST-Letters anti-forgetting (1 - forget)
@@ -36,6 +36,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import PowerNorm
 from matplotlib.patches import Patch
 
 REPO = Path(__file__).resolve().parents[1]
@@ -109,11 +110,13 @@ def _past_task_retention(d: dict) -> float:
 # per-client per-task data captured by the supplementary EMNIST run).
 PERCLIENT_BASE = RES / "perclient" / "EMNIST-Letters"
 
+# (raw_folder_on_disk, display_name).  Our method's raw experiment folder
+# is still named "CollEdge" historically; display label is DynDFCL.
 PERCLIENT_ALGORITHMS = [
     ("FedAvg",    "FedAvg"),
     ("FedProx",   "FedProx"),
     ("DCFCL",     "DCFCL"),
-    ("CollEdge",  "CollEdge"),
+    ("CollEdge",  "DynDFCL"),
 ]
 
 
@@ -150,24 +153,38 @@ def _client_task_matrix(d: dict, key: str) -> np.ndarray:
 def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path):
     """panels: list of (panel_label, algorithm_label, mat[N x T]) triples.
 
-    We arrange them in a 2-row layout: first row "(a) after-task", second
-    row "(b) end-of-stream", with one column per algorithm.
+    Single-row 1xN layout (after-task accuracy only).  The end-of-stream
+    row has been removed by request to keep the figure compact.
     """
     n_alg = len(PERCLIENT_ALGORITHMS)
     fig, axes = plt.subplots(
-        nrows=2, ncols=n_alg, figsize=(2.85 * n_alg, 5.6),
+        nrows=1, ncols=n_alg, figsize=(2.85 * n_alg, 2.9),
         sharex=True, sharey=True,
     )
     if n_alg == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
-    cmap = plt.get_cmap("viridis")
-    norm = plt.Normalize(vmin=0, vmax=100)
+        axes = np.array([axes])
 
-    # We expect panels grouped as: row0 = all algos diag, row1 = all algos final
-    # panels is a flat list ordered: [(diag, alg1), (diag, alg2), ..., (final, alg1), ...]
+    cmap = plt.get_cmap("viridis")
+    # Compute vmin from the data so the colourbar isn't dominated by the
+    # 0..min(values) range — gives more visible separation among the high
+    # accuracies typical of after-task readings.  Rounded down to the next
+    # multiple of 5 and clamped to [40, 70] for stability across runs.
+    if panels:
+        data_min = min(float(mat.min()) for _, _, mat in panels)
+        vmin = max(40.0, min(70.0, np.floor(data_min / 5.0) * 5.0))
+    else:
+        vmin = 50.0
+    # Non-linear mapping: most after-task accuracies sit in [90, 100], so a
+    # linear colour/size scale leaves them indistinguishable.  PowerNorm
+    # with gamma>1 stretches the high end of the dynamic range, and we
+    # apply the same gamma to the bubble-area formula below for visual
+    # consistency between colour and size.
+    GAMMA = 3.0
+    norm = PowerNorm(gamma=GAMMA, vmin=vmin, vmax=100)
+    vrange = max(1e-9, 100.0 - vmin)
+
     for idx, (row_label, alg_label, mat) in enumerate(panels):
-        r, c = divmod(idx, n_alg)
-        ax = axes[r, c]
+        ax = axes[idx]
         N, T = mat.shape
         xs, ys, vs = [], [], []
         for i in range(N):
@@ -175,14 +192,15 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
                 xs.append(i)
                 ys.append(t)
                 vs.append(mat[i, t])
-        sizes = [25 + (max(v, 0.0) / 100.0) ** 1.2 * 380 for v in vs]
+        # Non-linear bubble area sharing the colour-norm's gamma so that
+        # equal-colour cells also have equal-area bubbles.  Values below
+        # vmin are clamped to the minimum visible size.
+        sizes = []
+        for v in vs:
+            t = min(1.0, max(0.0, (v - vmin) / vrange))
+            sizes.append(10 + 160 * (t ** GAMMA))
         sc = ax.scatter(xs, ys, s=sizes, c=vs, cmap=cmap, norm=norm,
-                        edgecolors="black", linewidths=0.4, alpha=0.92)
-        # Cell labels for high-accuracy bubbles to reinforce the contrast
-        for x, y, v in zip(xs, ys, vs):
-            if v >= 70.0:
-                ax.text(x, y, f"{v:.0f}", ha="center", va="center",
-                        fontsize=6.2, color="white", fontweight="bold")
+                        edgecolors="black", linewidths=0.35, alpha=0.92)
         ax.set_xticks(range(N))
         ax.set_xticklabels([f"C{i+1}" for i in range(N)], fontsize=FONT_TICK)
         ax.set_yticks(range(T))
@@ -192,21 +210,22 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
         ax.invert_yaxis()  # T1 on top
         ax.grid(True, linestyle=":", linewidth=0.4, alpha=0.55)
         ax.set_axisbelow(True)
-        if r == 0:
-            ax.set_title(alg_label, fontsize=FONT_TITLE, pad=4)
-        if c == 0:
+        ax.set_title(alg_label, fontsize=FONT_TITLE, pad=4)
+        ax.set_xlabel("Client", fontsize=FONT_AXIS_LABEL)
+        if idx == 0:
             ax.set_ylabel(row_label, fontsize=FONT_AXIS_LABEL)
-        if r == 1:
-            ax.set_xlabel("Client", fontsize=FONT_AXIS_LABEL)
 
+    # Explicit ticks for the non-linear scale: denser near the top so the
+    # 90-100 region (where most after-task values live) gets visible labels.
+    cb_ticks = sorted({vmin, 80.0, 90.0, 95.0, 98.0, 100.0})
+    cb_ticks = [t for t in cb_ticks if vmin <= t <= 100.0]
     cbar = fig.colorbar(sc, ax=axes.ravel().tolist(), shrink=0.85, pad=0.025,
-                        location="right", fraction=0.022)
+                        location="right", fraction=0.022, ticks=cb_ticks)
     cbar.set_label("Per-client per-task accuracy (%)", fontsize=FONT_AXIS_LABEL)
     cbar.ax.tick_params(labelsize=FONT_TICK)
 
     fig.suptitle(
-        "Client x Task accuracy on EMNIST-Letters: "
-        "after-task (top) vs. end-of-stream (bottom)",
+        "Client x Task after-task accuracy on EMNIST-Letters",
         fontsize=FONT_TITLE, y=0.995,
     )
     fig.savefig(out_pdf, bbox_inches="tight", dpi=300)
@@ -232,7 +251,7 @@ RADAR_DATA = {
     "FedLwF":   dict(eacc=42.83, eforget=70.52, cacc=22.50, cforget=43.58, emerge=18.00),
     "SCAFFOLD": dict(eacc=39.42, eforget=72.10, cacc=22.05, cforget=44.92, emerge=15.00),
     "DCFCL":    dict(eacc=41.38, eforget=79.99, cacc=12.08, cforget=66.27, emerge=7.49),
-    "CollEdge": dict(eacc=93.51, eforget=9.49,  cacc=29.93, cforget=27.33, emerge=85.19),
+    "DynDFCL": dict(eacc=93.51, eforget=9.49,  cacc=29.93, cforget=27.33, emerge=85.19),
 }
 
 RADAR_AXES = [
@@ -286,12 +305,12 @@ def plot_radar(out_pdf: Path):
         "FedLwF":   "#8c564b",
         "SCAFFOLD": "#17becf",
         "DCFCL":    "#1f77b4",
-        "CollEdge": "#d62728",
+        "DynDFCL": "#d62728",
     }
     handles = []
     for i, alg in enumerate(algs):
         vals = norm_mat[i].tolist() + [norm_mat[i][0]]
-        is_focus = (alg == "CollEdge")
+        is_focus = (alg == "DynDFCL")
         lw = 2.6 if is_focus else 1.3
         ls = "-" if is_focus else "--"
         a_fill = 0.22 if is_focus else 0.0
@@ -338,7 +357,10 @@ def main() -> None:
         final_panels.append(("(b) End-of-stream accuracy", label, final))
         diag_data[label] = diag.tolist()
         final_data[label] = final.tolist()
-    panels = diag_panels + final_panels
+    # Only the after-task ("diag") row is rendered now; the end-of-stream
+    # row was removed by request.  We still dump both into extra_figures.json
+    # below so downstream tools can reconstruct it if needed.
+    panels = diag_panels
     if panels:
         plot_bubble_matrix(panels, FIG_DIR / "client_task_bubble.pdf")
 

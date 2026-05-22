@@ -1,5 +1,5 @@
 {
-  "algorithm_name": "CollEdge: Decentralized Federated Continual Learning with Directed Collaboration",
+  "algorithm_name": "DynDFCL: Decentralized Federated Continual Learning with Directed Collaboration",
   "input": [
     "N clients, T tasks, R communication rounds per task",
     "Learning rates \u03b7, \u03bb_kd, \u03bb_proto, \u03b1 (DER), \u03b2 (ER)",

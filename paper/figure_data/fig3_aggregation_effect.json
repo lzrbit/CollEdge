@@ -1,7 +1,7 @@
 {
   "EMNIST-Letters": {
-    "CollEdge": {
-      "display_name": "CollEdge",
+    "DynDFCL": {
+      "display_name": "DynDFCL",
       "rounds": [
         1,
         2,
@@ -508,8 +508,8 @@
         31.6914
       ]
     },
-    "CollEdge_gradient": {
-      "display_name": "CollEdge (gradient)",
+    "DynDFCL_gradient": {
+      "display_name": "DynDFCL (gradient)",
       "rounds": [
         1,
         2,
@@ -635,8 +635,8 @@
         88.2487
       ]
     },
-    "CollEdge_task_aware": {
-      "display_name": "CollEdge (task-aware)",
+    "DynDFCL_task_aware": {
+      "display_name": "DynDFCL (task-aware)",
       "rounds": [
         1,
         2,
@@ -762,8 +762,8 @@
         86.388
       ]
     },
-    "CollEdge_hybrid": {
-      "display_name": "CollEdge (hybrid)",
+    "DynDFCL_hybrid": {
+      "display_name": "DynDFCL (hybrid)",
       "rounds": [
         1,
         2,
@@ -891,8 +891,8 @@
     }
   },
   "CIFAR100": {
-    "CollEdge": {
-      "display_name": "CollEdge",
+    "DynDFCL": {
+      "display_name": "DynDFCL",
       "rounds": [
         1,
         2,

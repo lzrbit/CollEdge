@@ -40,7 +40,7 @@
     "CIFAR100_forgetting": 25.45
   },
   {
-    "algorithm": "CollEdge",
+    "algorithm": "DynDFCL",
     "EMNIST-Letters_forgetting": 10.05,
     "CIFAR100_forgetting": 43.58
   }

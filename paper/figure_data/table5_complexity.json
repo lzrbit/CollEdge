@@ -56,7 +56,7 @@
     "notes": "Coalition game O(n\u00b2), KD+Proto-Aug double pass"
   },
   {
-    "algorithm": "CollEdge",
+    "algorithm": "DynDFCL",
     "client_complexity": "O(E\u00b7|B|\u00b73d + B_size + C\u00b7n\u00b2)",
     "server_complexity": "O(n\u00b2\u00b7d)",
     "communication_cost": "O(n\u00b7d)",

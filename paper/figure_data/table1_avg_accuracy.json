@@ -40,7 +40,7 @@
     "CIFAR100_avg_acc": 12.08
   },
   {
-    "algorithm": "CollEdge",
+    "algorithm": "DynDFCL",
     "EMNIST-Letters_avg_acc": 90.45,
     "CIFAR100_avg_acc": 24.28
   }

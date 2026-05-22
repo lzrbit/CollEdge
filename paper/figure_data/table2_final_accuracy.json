@@ -40,7 +40,7 @@
     "CIFAR100_final_acc": 9.99
   },
   {
-    "algorithm": "CollEdge",
+    "algorithm": "DynDFCL",
     "EMNIST-Letters_final_acc": 86.39,
     "CIFAR100_final_acc": 19.39
   }

@@ -18,17 +18,22 @@ ABLATION_NAMES = {
     "B_DER_only":          "DER only",
     "C_DER_Directed":      "DER+Dir",
     "D_DER_Mask":          "DER+Mask",
-    "E_DER_Dir_Mask_Full": "CollEdge",
+    "E_DER_Dir_Mask_Full": "DynDFCL",
     "F_noDER_Directed":    "Dir only",
     "G_noDER_Mask":        "Mask only",
 }
+
+# Raw experiment-folder names on disk → internal/JSON algorithm key.
+# Our method's on-disk experiments are still labelled "CollEdge" historically;
+# remap to "DynDFCL" so downstream MAIN_ALGOS / ALGO_DISPLAY lookups match.
+DISK_REMAP = {"CollEdge": "DynDFCL"}
 
 DATASETS = ["EMNIST-Letters", "CIFAR100"]
 
 # Algorithms displayed in main comparison (order matters for plotting)
 MAIN_ALGOS = [
     "Local", "FedAvg", "FedLwF", "FedProx",
-    "SCAFFOLD", "PerAvg", "pFedMe", "DCFCL", "CollEdge"
+    "SCAFFOLD", "PerAvg", "pFedMe", "DCFCL", "DynDFCL"
 ]
 
 ALGO_DISPLAY = {
@@ -40,7 +45,7 @@ ALGO_DISPLAY = {
     "PerAvg":    "Per-FedAvg",
     "pFedMe":    "pFedMe",
     "DCFCL":     "DCFCL",
-    "CollEdge": "CollEdge",
+    "DynDFCL": "DynDFCL",
 }
 
 ABLATION_DISPLAY = {
@@ -48,7 +53,7 @@ ABLATION_DISPLAY = {
     "DER only":  "+DER++",
     "DER+Dir":   "+DER++ +Directed",
     "DER+Mask":  "+DER++ +Coalition",
-    "CollEdge": "CollEdge",
+    "DynDFCL": "DynDFCL",
     "Dir only":  "Directed only",
     "Mask only": "Coalition only",
 }
@@ -63,6 +68,7 @@ def load_all():
         if os.path.isdir(bpath):
             for exp_dir in sorted(os.listdir(bpath)):
                 algo = exp_dir.split("_" + ds)[0]
+                algo = DISK_REMAP.get(algo, algo)
                 rf = os.path.join(bpath, exp_dir, "results.json")
                 if os.path.exists(rf):
                     with open(rf) as f:
@@ -166,16 +172,16 @@ def gen_table3_forgetting(data):
 
 # ─── Table 4: Ablation Study ─────────────────────────────────────────────────
 
-ABLATION_ORDER = ["DCFCL", "DER only", "DER+Dir", "DER+Mask", "CollEdge", "Dir only", "Mask only"]
+ABLATION_ORDER = ["DCFCL", "DER only", "DER+Dir", "DER+Mask", "DynDFCL", "Dir only", "Mask only"]
 
 def gen_table4_ablation(data):
     rows = []
     for aname in ABLATION_ORDER:
         row = {
             "variant": ABLATION_DISPLAY.get(aname, aname),
-            "DER": "✓" if "DER" in aname or aname == "CollEdge" else "✗",
-            "Directed": "✓" if "Dir" in aname or aname == "CollEdge" else "✗",
-            "Coalition": "✓" if "Mask" in aname or aname == "CollEdge" else "✗",
+            "DER": "✓" if "DER" in aname or aname == "DynDFCL" else "✗",
+            "Directed": "✓" if "Dir" in aname or aname == "DynDFCL" else "✗",
+            "Coalition": "✓" if "Mask" in aname or aname == "DynDFCL" else "✗",
         }
         # fix: DCFCL baseline has no modules
         if aname == "DCFCL":
@@ -203,7 +209,7 @@ def gen_fig2_forgetting_staircase(data):
     per_task_acc[t] = list of accuracies on tasks 0..t after training task t.
     """
     out = {}
-    TARGET_ALGOS = ["CollEdge", "DCFCL", "FedAvg", "Local"]
+    TARGET_ALGOS = ["DynDFCL", "DCFCL", "FedAvg", "Local"]
     for ds in DATASETS:
         out[ds] = {}
         for algo in TARGET_ALGOS:
@@ -234,12 +240,12 @@ def gen_fig2_forgetting_staircase(data):
 def gen_fig3_aggregation_effect(data):
     """
     Show how accuracy changes after each federation round vs. local-only.
-    Use all_accuracies for CollEdge vs Local to illustrate aggregation benefit.
+    Use all_accuracies for DynDFCL vs Local to illustrate aggregation benefit.
     """
     out = {}
     for ds in DATASETS:
         out[ds] = {}
-        for algo in ["CollEdge", "DCFCL", "Local", "FedAvg"]:
+        for algo in ["DynDFCL", "DCFCL", "Local", "FedAvg"]:
             if algo in data[ds]:
                 acc_list = data[ds][algo]["all_accuracies"]
                 out[ds][algo] = {
@@ -255,7 +261,7 @@ def gen_fig3_aggregation_effect(data):
 
 def gen_fig4_emergence(data):
     """
-    Emergence: CollEdge clients learn classes never seen locally.
+    Emergence: DynDFCL clients learn classes never seen locally.
     Use per_task_acc to show task accuracy even when client has no local data for that task.
     We define emergence as: in the final round, accuracy > threshold on tasks the client
     never locally trained on.
@@ -264,7 +270,7 @@ def gen_fig4_emergence(data):
     out = {}
     for ds in DATASETS:
         out[ds] = {}
-        for algo in ["CollEdge", "DCFCL", "FedAvg"]:
+        for algo in ["DynDFCL", "DCFCL", "FedAvg"]:
             if algo not in data[ds]:
                 continue
             per_task = data[ds][algo]["per_task_acc"]
@@ -368,7 +374,7 @@ def gen_table5_complexity():
             "notes": "Coalition game O(n²), KD+Proto-Aug double pass"
         },
         {
-            "algorithm": "CollEdge",
+            "algorithm": "DynDFCL",
             "client_complexity": "O(E·|B|·3d + B_size + C·n²)",
             "server_complexity": "O(n²·d)",
             "communication_cost": "O(n·d)",
@@ -384,7 +390,7 @@ def gen_table5_complexity():
 
 def gen_pseudocode():
     pseudocode = {
-        "algorithm_name": "CollEdge: Decentralized Federated Continual Learning with Directed Collaboration",
+        "algorithm_name": "DynDFCL: Decentralized Federated Continual Learning with Directed Collaboration",
         "input": [
             "N clients, T tasks, R communication rounds per task",
             "Learning rates η, λ_kd, λ_proto, α (DER), β (ER)",

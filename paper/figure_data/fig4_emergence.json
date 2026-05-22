@@ -1,7 +1,7 @@
 {
   "EMNIST-Letters": {
-    "CollEdge": {
-      "display_name": "CollEdge",
+    "DynDFCL": {
+      "display_name": "DynDFCL",
       "n_tasks": 6,
       "final_per_task_acc": [
         83.08,
@@ -173,8 +173,8 @@
     }
   },
   "CIFAR100": {
-    "CollEdge": {
-      "display_name": "CollEdge",
+    "DynDFCL": {
+      "display_name": "DynDFCL",
       "n_tasks": 10,
       "final_per_task_acc": [
         13.09,
