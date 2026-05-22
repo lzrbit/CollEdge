@@ -245,13 +245,19 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
 # script is self-contained and reproducible without re-running the entire
 # experimental pipeline.
 
+# Values transcribed directly from the body tables in main.tex:
+#   eacc / eforget / cacc / cforget — Table tab:main_results (DynDFCL uses
+#   the "gradient" headline row).
+#   emerge — mean of T1..T_{T-1} (EMNIST T1-T5 from tab:task_wise_accuracy),
+#   which is the "collective intelligence emergence" axis defined in the
+#   caption.
 RADAR_DATA = {
-    "FedAvg":   dict(eacc=43.16, eforget=68.95, cacc=22.16, cforget=44.78, emerge=19.35),
-    "FedProx":  dict(eacc=46.25, eforget=66.27, cacc=22.21, cforget=43.26, emerge=20.00),
-    "FedLwF":   dict(eacc=42.83, eforget=70.52, cacc=22.50, cforget=43.58, emerge=18.00),
-    "SCAFFOLD": dict(eacc=39.42, eforget=72.10, cacc=22.05, cforget=44.92, emerge=15.00),
-    "DCFCL":    dict(eacc=41.38, eforget=79.99, cacc=12.08, cforget=66.27, emerge=7.49),
-    "DynDFCL": dict(eacc=93.51, eforget=9.49,  cacc=29.93, cforget=27.33, emerge=85.19),
+    "FedAvg":   dict(eacc=50.35, eforget=57.49, cacc=10.21, cforget=12.10, emerge=19.34),
+    "FedProx":  dict(eacc=53.84, eforget=54.12, cacc=10.79, cforget=12.98, emerge=20.50),
+    "FedLwF":   dict(eacc=50.33, eforget=57.33, cacc=10.56, cforget=12.46, emerge=18.44),
+    "SCAFFOLD": dict(eacc=42.48, eforget=60.74, cacc=8.26,  cforget=7.66,  emerge=8.14),
+    "DCFCL":    dict(eacc=46.75, eforget=65.32, cacc=12.12, cforget=24.01, emerge=7.50),
+    "DynDFCL":  dict(eacc=93.72, eforget=9.49,  cacc=24.98, cforget=41.28, emerge=86.86),
 }
 
 RADAR_AXES = [
@@ -281,6 +287,13 @@ def _radar_normalised() -> tuple[np.ndarray, list[str]]:
 
 
 def plot_radar(out_pdf: Path):
+    # Local font overrides for Fig 7 only (do not change FONT_* globals,
+    # which are shared with Fig 6's bubble matrix).
+    fs_tick   = 14.0
+    fs_axis   = 15.0
+    fs_title  = 17.0
+    fs_legend = 14.0
+
     norm_mat, algs = _radar_normalised()
     M = len(RADAR_AXES)
     angles = np.linspace(0.0, 2.0 * np.pi, M, endpoint=False).tolist()
@@ -293,10 +306,10 @@ def plot_radar(out_pdf: Path):
     ax.set_rlabel_position(90)
     ax.set_ylim(0, 1.0)
     ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=FONT_TICK,
+    ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=fs_tick,
                        color="0.4")
     ax.set_xticks(angles)
-    ax.set_xticklabels([lbl for lbl, _, _ in RADAR_AXES], fontsize=FONT_AXIS_LABEL)
+    ax.set_xticklabels([lbl for lbl, _, _ in RADAR_AXES], fontsize=fs_axis)
     ax.tick_params(axis="x", pad=14)
 
     palette = {
@@ -322,12 +335,14 @@ def plot_radar(out_pdf: Path):
                     color=palette[alg])
         handles.append(line)
 
-    ax.set_title("Multi-metric Comparison (outer = better)",
-                 fontsize=FONT_TITLE, pad=18)
+    # Title removed by request; legend pushed further down so it stops
+    # overlapping the bottom-half axis labels ("CIFAR-100 Avg. Acc." and
+    # "CIFAR-100 Anti-Forget."), which grew with the larger axis font.
     ax.legend(handles=handles, loc="lower center",
-              bbox_to_anchor=(0.5, -0.18), ncol=3,
-              fontsize=FONT_LEGEND, frameon=False)
-    fig.subplots_adjust(left=0.08, right=0.92, top=0.88, bottom=0.18)
+              bbox_to_anchor=(0.5, -0.28), ncol=3,
+              fontsize=fs_legend, frameon=False,
+              columnspacing=1.4, handletextpad=0.5)
+    fig.subplots_adjust(left=0.06, right=0.94, top=0.96, bottom=0.22)
     fig.savefig(out_pdf, bbox_inches="tight", dpi=300)
     fig.savefig(out_pdf.with_suffix(".png"), bbox_inches="tight", dpi=200)
     plt.close(fig)

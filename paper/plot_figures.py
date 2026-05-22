@@ -198,18 +198,22 @@ def _plot_fig2_for_dataset(data: dict, ds: str, out_dir: Path, suffix: str,
     readability across the full text width.
     """
     if wide:
-        # Bump rcParams locally so labels stay legible across the full
-        # IEEE text width (~7.0 in).  Restored after save().
-        apply_style(base=11.0, title=12.0, axis_label=11.0,
-                    tick=10.0, legend=10.0)
+        # Fig 3 (CIFAR-100, IEEE figure*): every text element uniform.
+        UNI = 14.0
+        apply_style(base=UNI, title=UNI, axis_label=UNI,
+                    tick=UNI, legend=UNI)
         fig, axes = plt.subplots(1, 3, figsize=(14.0, 4.6))
-        cell_small = 8.5   # n > 6 (CIFAR-100, 10 tasks)
-        cell_large = 10.0  # n <= 6
+        cell_small = UNI   # uniform across cells too
+        cell_large = UNI
         title_pad = 6
     else:
+        # Fig 2 (EMNIST, single column): general fonts and staircase cell
+        # labels both bumped from the previous compact sizes.
+        apply_style(base=14.0, title=14.0, axis_label=14.0,
+                    tick=13.0, legend=13.0)
         fig, axes = plt.subplots(1, 3, figsize=(8.6, 3.2))
-        cell_small = 5.5
-        cell_large = 6.5
+        cell_small = 9.0
+        cell_large = 11.0
         title_pad = 4
     cmap = plt.cm.RdYlGn
     norm = plt.Normalize(0, 100)
@@ -259,8 +263,7 @@ def _plot_fig2_for_dataset(data: dict, ds: str, out_dir: Path, suffix: str,
                         fraction=0.020, pad=0.02, shrink=0.85)
     cbar.set_label("Accuracy (%)")
     save(fig, out_dir, f"forgetting_heatmap_{suffix}")
-    if wide:
-        apply_style()  # restore unified style for any later figure
+    apply_style()  # restore unified style for any later figure
 
 
 def plot_fig2(data_dir: Path, out_dir: Path) -> None:
@@ -279,8 +282,9 @@ def plot_fig2(data_dir: Path, out_dir: Path) -> None:
 
 def plot_fig3(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig1_comm_rounds.json")
-    # Smaller fonts dedicated to this figure (request: shrink for clarity).
-    apply_style(base=7.5, title=8.5, axis_label=8.0, tick=7.0, legend=7.0)
+    # All text in Fig.~4 uses the same font size.
+    UNI = 8.5
+    apply_style(base=UNI, title=UNI, axis_label=UNI, tick=UNI, legend=UNI)
     fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
 
     panel_labels = ["a", "b"]
@@ -311,7 +315,7 @@ def plot_fig3(data_dir: Path, out_dir: Path) -> None:
         ax.set_xlabel("Communication round")
         ax.set_ylabel("Average accuracy (%)" if ax is axes[0] else "")
         ax.text(-0.10, 1.02, plab, transform=ax.transAxes,
-                fontsize=8.5, fontweight="bold", va="bottom", ha="right")
+                fontsize=UNI, fontweight="bold", va="bottom", ha="right")
         ax.margins(x=0.01)
         ax.tick_params(top=False, right=False)
 
@@ -350,8 +354,9 @@ def plot_fig4(data_dir: Path, out_dir: Path) -> None:
     data = load(data_dir, "fig4_emergence.json")
     datasets = ["EMNIST-Letters", "CIFAR100"]
 
-    apply_style(base=5.5, title=6.0, axis_label=5.5,
-                tick=4.8, legend=5.0)
+    # Fig 5 fonts bumped from the previous compact preset.
+    apply_style(base=7.5, title=8.0, axis_label=7.5,
+                tick=7.0, legend=7.0)
     fig = plt.figure(figsize=(3.5, 3.4))
     gs = fig.add_gridspec(2, 4, width_ratios=[1, 1, 1, 0.05],
                           wspace=0.20, hspace=0.55)
@@ -420,7 +425,7 @@ def plot_fig4(data_dir: Path, out_dir: Path) -> None:
         cbar = fig.colorbar(sm, cax=cax, ticks=cticks)
         cbar.ax.set_yticklabels([f"T{int(t)}" for t in cticks])
         cbar.outline.set_linewidth(0.4)
-        cbar.ax.tick_params(labelsize=4.5,
+        cbar.ax.tick_params(labelsize=6.5,
                             length=1.5, width=0.4, pad=1.5)
 
     save(fig, out_dir, "emergence_trajectories")
