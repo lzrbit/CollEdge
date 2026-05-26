@@ -48,11 +48,14 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Unified font sizes (kept in sync with plot_figures.py)
+# All-9pt across the bubble-matrix figure per user request (Fig 7 font
+# consistency); the radar figure uses its own local font overrides in
+# plot_radar() and is unaffected.
 FONT_BASE       = 9.0
-FONT_TITLE      = 10.0
+FONT_TITLE      = 9.0
 FONT_AXIS_LABEL = 9.0
-FONT_TICK       = 8.0
-FONT_LEGEND     = 8.0
+FONT_TICK       = 9.0
+FONT_LEGEND     = 9.0
 
 plt.rcParams.update({
     "font.family":      "sans-serif",
@@ -224,10 +227,8 @@ def plot_bubble_matrix(panels: list[tuple[str, str, np.ndarray]], out_pdf: Path)
     cbar.set_label("Per-client per-task accuracy (%)", fontsize=FONT_AXIS_LABEL)
     cbar.ax.tick_params(labelsize=FONT_TICK)
 
-    fig.suptitle(
-        "Client x Task after-task accuracy on EMNIST-Letters",
-        fontsize=FONT_TITLE, y=0.995,
-    )
+    # Suptitle removed by request; the LaTeX figure caption carries the
+    # equivalent description in main.tex.
     fig.savefig(out_pdf, bbox_inches="tight", dpi=300)
     fig.savefig(out_pdf.with_suffix(".png"), bbox_inches="tight", dpi=200)
     plt.close(fig)
@@ -368,8 +369,8 @@ def main() -> None:
             continue
         diag = _client_task_matrix(d, "per_client_diag_acc")
         final = _client_task_matrix(d, "per_client_final_acc")
-        diag_panels.append(("(a) After-task accuracy", label, diag))
-        final_panels.append(("(b) End-of-stream accuracy", label, final))
+        diag_panels.append(("After-task accuracy", label, diag))
+        final_panels.append(("End-of-stream accuracy", label, final))
         diag_data[label] = diag.tolist()
         final_data[label] = final.tolist()
     # Only the after-task ("diag") row is rendered now; the end-of-stream
